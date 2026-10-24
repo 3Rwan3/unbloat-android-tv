@@ -768,6 +768,11 @@ public class Home extends Activity {
     @Override
     public boolean onKeyDown(int code, KeyEvent e) {
         if (code == KeyEvent.KEYCODE_BACK) { closeTopOverlay(); return true; } // l'accueil ne se ferme jamais
+        // touche Source / TV : sur certaines TV, seul l'accueil d'origine la gerait
+        if ((code == KeyEvent.KEYCODE_TV_INPUT || code == KeyEvent.KEYCODE_TV) && overlays.isEmpty() && moveIndex < 0) {
+            openInputs();
+            return true;
+        }
         if (code == KeyEvent.KEYCODE_MENU) {
             if (!overlays.isEmpty()) return true;
             View f = getCurrentFocus();
@@ -811,6 +816,17 @@ public class Home extends Activity {
             } catch (Exception ignored) { }
         }
         launch(in[0]);
+    }
+
+    /** Menu des entrees du systeme s'il existe, sinon l'appli TV de la marque. */
+    void openInputs() {
+        Intent vi = new Intent("com.android.tv.action.VIEW_INPUTS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (vi.resolveActivity(getPackageManager()) != null) {
+            try { startActivity(vi); return; } catch (Exception ignored) { }
+        }
+        String[] in = findInput();
+        if (in != null) openInput(in);
+        else toast(t("Aucun menu des entrées trouvé sur cette TV", "No inputs menu found on this TV"));
     }
 
     Intent launchIntent(String pkg) {
