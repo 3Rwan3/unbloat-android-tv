@@ -319,6 +319,31 @@ $KnownDock = [ordered]@{
     "tv.molotov.app"="Molotov"; "com.cbs.ott"="Paramount+"; "com.dazn"="DAZN"; "tv.twitch.android.app"="Twitch"
     "org.xbmc.kodi"="Kodi"; "com.google.android.youtube.tvkids"="YouTube Kids"
 }
+# Android 10+ : l'accueil par défaut est un « rôle » système, en plus de set-home-activity
+function Set-HomeRole([string]$pkg) {
+    if ([int]("0" + $script:Info.Sdk) -ge 29) { Sh "cmd role add-role-holder android.app.role.HOME $pkg" | Out-Null }
+}
+
+# Désactive l'accueil d'origine (et l'écran de secours Google TV), puis vérifie que Zen Home a bien pris la place.
+# Si la TV n'a plus d'accueil utilisable, tout est réactivé aussitôt : la TV ne peut pas rester sans accueil.
+function Disable-OrigHome([string]$origPkg) {
+    $toOff = @($origPkg)
+    # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
+    if ((Get-Packages "-e") -contains $GtvFallback) { $toOff += $GtvFallback }
+    Disable-Packages $toOff "launcher"
+    $st = Get-State; $st.launcher_disabled = $origPkg; Save-State $st
+    Sh "cmd package set-home-activity $ZenPkg/.Home" | Out-Null
+    Set-HomeRole $ZenPkg
+    Sh "input keyevent KEYCODE_HOME" | Out-Null
+    Start-Sleep 5
+    if ((Get-Home) -like "$ZenPkg/*") { return $true }
+    Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
+    foreach ($q in $toOff) { Sh "pm enable $q" | Out-Null }
+    $st = Get-State; $st.disabled = @($st.disabled | Where-Object { $toOff -notcontains $_ }); $st.launcher_disabled = $null; Save-State $st
+    Sh "input keyevent KEYCODE_HOME" | Out-Null
+    return $false
+}
+
 function Do-Launcher {
     if ($script:Info.Brand -match "Amazon" -or $script:Info.Manufacturer -match "Amazon") {
         Err "Fire TV : Amazon bloque le remplacement de l'écran d'accueil. Utilisez seulement l'allègement (menu 2)." "Fire TV: Amazon blocks replacing the home screen. Use slimming only (menu 2)."
@@ -377,40 +402,33 @@ function Do-Launcher {
     Sh "pm grant $ZenPkg android.permission.READ_EXTERNAL_STORAGE" | Out-Null
 
     $setOk = ((Sh "cmd package set-home-activity $ZenPkg/.Home") -join " ")
+    Set-HomeRole $ZenPkg
     Sh "am force-stop $ZenPkg" | Out-Null
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 6
     $now = Get-Home
     $origPkg = if ($st.original_home) { $st.original_home -replace "/.*$", "" } else { $null }
+    $hasOrig = $origPkg -and $origPkg -ne $ZenPkg
     Write-Host ""
     if ($now -like "$ZenPkg/*") {
         Ok "Zen Home est l'écran d'accueil." "Zen Home is the home screen."
-        # l'accueil d'origine n'est proposé à la désactivation que si Zen Home est confirmé (sinon la TV n'aurait plus d'accueil)
-        if ($origPkg -and $origPkg -ne $ZenPkg) {
+        if ($hasOrig) {
             Say "L'écran d'accueil d'origine ($origPkg) tourne souvent en fond et consomme beaucoup." "The original home screen ($origPkg) often runs in the background and uses a lot of resources." "White"
             Warn "Sur certaines TV (surtout Google TV), la touche Source de la télécommande ne marche plus dans les applis une fois l'accueil d'origine désactivé. L'option 6 remet tout." "On some TVs (especially Google TV), the remote's Source button stops working inside apps once the original home screen is disabled. Option 6 puts everything back."
-            if (YesNo "Le désactiver (recommandé, réversible) ?" "Disable it (recommended, reversible)?" $true) {
-                $toOff = @($origPkg)
-                # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
-                if ((Get-Packages "-e") -contains $GtvFallback) { $toOff += $GtvFallback }
-                Disable-Packages $toOff "launcher"
-                $st = Get-State; $st.launcher_disabled = $origPkg; Save-State $st
-                # sécurité : si la TV n'accepte plus Zen Home comme accueil, on réactive tout de suite
-                Sh "input keyevent KEYCODE_HOME" | Out-Null
-                Start-Sleep 4
-                if ((Get-Home) -notlike "$ZenPkg/*") {
-                    Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
-                    foreach ($q in $toOff) { Sh "pm enable $q" | Out-Null }
-                    $st = Get-State; $st.disabled = @($st.disabled | Where-Object { $toOff -notcontains $_ }); $st.launcher_disabled = $null; Save-State $st
-                }
-            }
+            if (YesNo "Le désactiver (recommandé, réversible) ?" "Disable it (recommended, reversible)?" $true) { [void](Disable-OrigHome $origPkg) }
         }
+    }
+    elseif ($hasOrig) {
+        # Google TV et d'autres refusent un autre accueil tant que le leur est actif : seule solution, le désactiver
+        Warn "La TV garde son accueil d'origine ($origPkg) et refuse Zen Home tant qu'il est actif (fréquent sur Google TV)." "The TV keeps its original home screen ($origPkg) and refuses Zen Home while it is active (common on Google TV)."
+        Say "Le kit peut le désactiver pour forcer Zen Home. Il vérifie ensuite que la TV accepte Zen Home, et réactive tout de suite l'accueil d'origine sinon." "The kit can disable it to force Zen Home. It then checks that the TV accepts Zen Home, and re-enables the original home screen right away otherwise." "White"
+        Warn "Sur certaines TV (surtout Google TV), la touche Source de la télécommande ne marche plus dans les applis une fois l'accueil d'origine désactivé. L'option 6 remet tout." "On some TVs (especially Google TV), the remote's Source button stops working inside apps once the original home screen is disabled. Option 6 puts everything back."
+        if (YesNo "Forcer Zen Home (réversible) ?" "Force Zen Home (reversible)?" $true) {
+            if (Disable-OrigHome $origPkg) { Ok "Zen Home est l'écran d'accueil." "Zen Home is the home screen." }
+        } else { Say "Rien n'a été désactivé. Zen Home reste disponible dans « Toutes les applis »." "Nothing was disabled. Zen Home stays available in 'All apps'." "DarkGray" }
     }
     else {
         Warn "La TV n'a pas confirmé Zen Home par défaut ($now). Appuyez sur la touche Accueil : si un choix s'affiche, prenez « Zen Home » puis « Toujours »." "The TV did not confirm Zen Home as default ($now). Press Home: if a chooser appears, pick 'Zen Home' then 'Always'."
-        if ($origPkg -and $origPkg -ne $ZenPkg) {
-            Say "Par sécurité, l'accueil d'origine n'a pas été désactivé. Une fois Zen Home choisi, relancez l'option 3 pour le désactiver." "For safety, the original home screen was not disabled. Once Zen Home is picked, run option 3 again to disable it." "DarkGray"
-        }
     }
     Capture-TV "zen_home" | Out-Null
     Write-Host ""
@@ -465,7 +483,7 @@ function Do-Restore {
         }
         Ok "Animations d'origine" "Original animations"
     }
-    if ($st.original_home -and $st.original_home -notlike "$ZenPkg/*") { Sh "cmd package set-home-activity $($st.original_home)" | Out-Null; Ok "Écran d'accueil : $($st.original_home)" "Home screen: $($st.original_home)" }
+    if ($st.original_home -and $st.original_home -notlike "$ZenPkg/*") { Sh "cmd package set-home-activity $($st.original_home)" | Out-Null; Set-HomeRole ($st.original_home -replace "/.*$", ""); Ok "Écran d'accueil : $($st.original_home)" "Home screen: $($st.original_home)" }
     $zen = @(Get-Packages "") -contains $ZenPkg
     if ($zen) {
         if (YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" $true) { A uninstall $ZenPkg | Out-Null; Ok "Zen Home désinstallé" "Zen Home uninstalled" }
