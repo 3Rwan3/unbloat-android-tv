@@ -23,7 +23,7 @@ com.tcl.waterfall.overseas,com.tcl.channelplus | TCL Channel (chaînes gratuites
 com.tcl.MultiScreenInteraction_TV,com.tcl.miracast | Recopie d'écran / MagiConnect / T-Cast | Screen mirroring / MagiConnect / T-Cast
 com.tcl.ui_mediaCenter                         | Lecteur de clé USB TCL (Media Center) | TCL USB player (Media Center)
 com.tcl.smartalexa                             | Alexa sur la TV TCL | Alexa on the TCL TV
-com.tcl.assistant                              | Assistant vocal TCL | TCL voice assistant
+com.tcl.assistant                              | Assistant vocal TCL (sur certaines TCL : module Google Assistant) | TCL voice assistant (on some TCLs: Google Assistant module)
 com.tcl.appmarket2                             | Boutique d'applis TCL | TCL app store
 com.tcl.usercenter                             | Compte TCL | TCL account
 
