@@ -57,7 +57,7 @@ Votre TV Android rame, affiche des pubs partout, et le son se décale pendant le
 |---|---|---|
 | **1. Diagnostic + sauvegarde** | Relève la version d'Android, la mémoire, le processeur et le Wi-Fi. Sauvegarde la liste des applis et des réglages, avec une capture de l'écran. | Non |
 | **2. Alléger** | Désactive les pubs, la télémétrie et les services inutiles connus (Google, TCL, Sony, Xiaomi…). Pour les fonctions que vous utilisez peut-être (Chromecast, Assistant…), le kit vous pose la question. | Oui, réversible |
-| **3. Zen Home** | Installe l'écran d'accueil minimaliste avec votre titre et vos applis. Si vous le voulez, il désactive aussi l'accueil d'origine, souvent très gourmand. | Oui, réversible |
+| **3. Zen Home** | Installe l'écran d'accueil minimaliste : votre titre, une vue à 4, 6 ou 8 applis, et vos applis préférées. Si vous le voulez, il désactive aussi l'accueil d'origine, souvent très gourmand. | Oui, réversible |
 | **4. Mes photos** | Remplace les photos fournies par les vôtres. | Oui, réversible |
 | **5. Capture d'écran** | Prend une capture de ce qui est affiché sur la TV. | Non |
 | **6. Tout restaurer** | Réactive tout ce que le kit a désactivé, remet l'écran d'accueil et les animations d'origine, et désinstalle Zen Home. | Retour à l'origine |
@@ -164,8 +164,9 @@ Les versions Windows (`scripts/kit.ps1`) et macOS/Linux (`scripts/kit.sh`) font 
 
 | Quoi | Comment |
 |---|---|
-| **Titre** (« Salon », « Chambre de Léa »…) | Option 3 du menu. Relancez-la pour en changer, ou laissez vide pour ne rien afficher. |
-| **Applis du dock** (4 maximum) | Option 3 : le kit liste les applis de streaming trouvées, choisissez les numéros dans l'ordre voulu. Sans choix, Zen Home prend automatiquement les 4 premières parmi Netflix, YouTube, Prime Video, Disney+, myCANAL, Max, Apple TV… |
+| **Titre** (« Salon », « Chambre de Léa »…) | Option 3 du menu. Tapez votre titre, laissez vide pour afficher le nom de la TV (celui des paramètres Android), ou tapez `-` pour ne rien afficher. |
+| **Disposition** | Option 3 : **4 applis** (grandes tuiles), **6 applis** sur une ligne, ou **8 applis** sur deux lignes. |
+| **Applis du dock** | Option 3 : le kit liste les applis de streaming trouvées, choisissez les numéros dans l'ordre voulu. Sans choix, Zen Home prend automatiquement les premières parmi Netflix, YouTube, Prime Video, Disney+, myCANAL, Max, Apple TV… |
 | **Vos photos** | Copiez vos `.jpg` (format paysage, idéalement 1920×1080) dans le dossier **`mes_photos`**, puis lancez l'option 4. Pour revenir aux photos fournies, videz le dossier et relancez l'option 4. |
 | **Vitesse de défilement** | Option 4 : nombre de secondes entre deux photos (60 par défaut). |
 | **Ce qui est désactivé** | Modifiez `scripts/listes/pubs_telemetrie.txt` (désactivé après une seule confirmation) et `scripts/listes/optionnel.txt` (le kit pose la question pour chaque ligne). Une ligne = `nom.du.paquet | description FR | English description`. Pour regrouper plusieurs paquets d'une même fonction sous une seule question : `paquet1,paquet2 | ... | ...`. |
@@ -173,8 +174,25 @@ Les versions Windows (`scripts/kit.ps1`) et macOS/Linux (`scripts/kit.sh`) font 
 Avec la télécommande, dans Zen Home :
 
 - **Flèches et OK** pour ouvrir une appli.
-- **Toutes** (ou la touche Menu) pour voir toutes les applis installées.
+- **Toutes** pour voir toutes les applis installées.
 - **Entrées TV** pour les chaînes et les ports HDMI, si la marque est reconnue.
+
+### Modifier l'écran d'accueil directement sur la TV
+
+Pas besoin du PC pour changer le dock. Sur une appli du dock, faites un **appui long sur OK** (ou appuyez sur la touche **Menu** de la télécommande) :
+
+| Action | Ce qu'elle fait |
+|---|---|
+| **Déplacer** | L'appli s'entoure de bleu : déplacez-la avec les flèches, puis **OK** pour valider. |
+| **Remplacer par une autre appli** | Ouvre la liste de vos applis : celle que vous choisissez prend sa place. |
+| **Retirer du dock** | Enlève l'appli du dock (elle reste installée). |
+| **Ajouter une appli** | Quand il reste de la place. La case **+** du dock fait la même chose. |
+| **Disposition** | Passe en vue 4, 6 ou 8 applis. |
+| **Modifier le titre** | Votre texte, ou vide pour le nom de la TV, ou « Aucun titre ». |
+
+Dans **Toutes**, un appui long sur une appli permet aussi de l'**ajouter au dock**.
+
+Ces réglages sont enregistrés sur la TV. Si vous relancez plus tard l'option 3 du kit, ce sont les choix faits dans le kit qui s'appliquent.
 
 ## Sécurité et retour en arrière
 
@@ -195,6 +213,7 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | « Connexion impossible » | Vérifiez que la TV est allumée (pas en veille), sur le même réseau que le PC, et que le **Débogage USB** est activé. Vérifiez aussi l'adresse IP. |
 | Pas de fenêtre « Autoriser le débogage » | Désactivez puis réactivez le Débogage USB, puis relancez le kit. Sur certaines TV, il faut aussi activer **Débogage ADB réseau**. |
 | TV en Android 11 ou plus récent, avec un écran « Débogage sans fil » | Choisissez « Associer avec un code » sur la TV. Quand le kit le propose, répondez **oui** et tapez l'IP:port et le code affichés. |
+| L'appui long sur OK ne fait rien | Certaines télécommandes gèrent mal l'appui long : utilisez la touche **Menu** (ou ☰) sur l'appli. |
 | Zen Home ne s'affiche pas avec le bouton Accueil | Appuyez sur Accueil : si un choix s'affiche, prenez **Zen Home** puis **Toujours**. Sinon, relancez l'option 3 et acceptez de désactiver l'accueil d'origine. |
 | L'ancien accueil revient (Google TV) | Une mise à jour l'a réactivé : relancez l'option 3. |
 | La tuile « Entrées TV » est absente | La marque n'est pas reconnue : utilisez le bouton Source ou Input de la télécommande, ou ajoutez votre marque dans le code (voir [Avant d'utiliser le kit](#avant-dutiliser-le-kit-sur-votre-tv)). |

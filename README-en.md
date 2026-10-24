@@ -57,7 +57,7 @@ Is your Android TV laggy, full of ads, with audio drifting out of sync during mo
 |---|---|---|
 | **1. Diagnosis + backup** | Reads the Android version, memory, CPU and Wi-Fi. Backs up the list of apps and settings, with a screenshot. | No |
 | **2. Slim down** | Disables known ads, telemetry and useless services (Google, TCL, Sony, Xiaomi…). For features you may use (Chromecast, Assistant…), the kit asks you first. | Yes, reversible |
-| **3. Zen Home** | Installs the minimalist home screen with your title and apps. If you want, it also disables the original home screen, which is often very resource-hungry. | Yes, reversible |
+| **3. Zen Home** | Installs the minimalist home screen: your title, a 4, 6 or 8 app layout, and your favourite apps. If you want, it also disables the original home screen, which is often very resource-hungry. | Yes, reversible |
 | **4. My photos** | Replaces the bundled photos with your own. | Yes, reversible |
 | **5. Screenshot** | Captures what the TV is showing. | No |
 | **6. Restore everything** | Re-enables everything the kit disabled, puts back the original home screen and animations, and uninstalls Zen Home. | Back to original |
@@ -164,8 +164,9 @@ The Windows (`scripts/kit.ps1`) and macOS/Linux (`scripts/kit.sh`) versions do e
 
 | What | How |
 |---|---|
-| **Title** ("Living room", "Emma's room"…) | Menu option 3. Run it again to change it, or leave it empty for no title. |
-| **Dock apps** (4 max) | Option 3: the kit lists the streaming apps it found; pick the numbers in the order you want. Without a choice, Zen Home automatically picks the first 4 among Netflix, YouTube, Prime Video, Disney+, myCANAL, Max, Apple TV… |
+| **Title** ("Living room", "Emma's room"…) | Menu option 3. Type your title, leave it empty to show the TV's name (the one in the Android settings), or type `-` to show nothing. |
+| **Layout** | Option 3: **4 apps** (large tiles), **6 apps** in one row, or **8 apps** in two rows. |
+| **Dock apps** | Option 3: the kit lists the streaming apps it found; pick the numbers in the order you want. Without a choice, Zen Home automatically picks the first ones among Netflix, YouTube, Prime Video, Disney+, myCANAL, Max, Apple TV… |
 | **Your photos** | Copy your `.jpg` files (landscape, ideally 1920×1080) into the **`mes_photos`** folder, then run option 4. To go back to the bundled photos, empty the folder and run option 4 again. |
 | **Rotation speed** | Option 4: number of seconds between photos (60 by default). |
 | **What gets disabled** | Edit `scripts/listes/pubs_telemetrie.txt` (disabled after a single confirmation) and `scripts/listes/optionnel.txt` (the kit asks for each line). One line = `package.name | French description | English description`. To group several packages of one feature under a single question: `package1,package2 | ... | ...`. |
@@ -173,8 +174,25 @@ The Windows (`scripts/kit.ps1`) and macOS/Linux (`scripts/kit.sh`) versions do e
 With the remote, in Zen Home:
 
 - **Arrows and OK** to open an app.
-- **All apps** (or the Menu key) to see every installed app.
+- **All apps** to see every installed app.
 - **TV inputs** for channels and HDMI ports, if the brand is recognised.
+
+### Edit the home screen right on the TV
+
+No PC needed to change the dock. On a dock app, **long-press OK** (or press the remote's **Menu** key):
+
+| Action | What it does |
+|---|---|
+| **Move** | The app gets a blue outline: move it with the arrows, then press **OK** to confirm. |
+| **Replace with another app** | Opens your app list: the one you pick takes its place. |
+| **Remove from dock** | Takes the app off the dock (it stays installed). |
+| **Add an app** | When there's room left. The dock's **+** tile does the same. |
+| **Layout** | Switches to the 4, 6 or 8 app layout. |
+| **Change the title** | Your own text, empty for the TV's name, or "No title". |
+
+In **All apps**, long-pressing an app also lets you **add it to the dock**.
+
+These settings are saved on the TV. If you run the kit's option 3 again later, the choices made in the kit take over.
 
 ## Safety and undo
 
@@ -195,6 +213,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | "Could not connect" | Make sure the TV is on (not in standby), on the same network as the PC, and that **USB debugging** is enabled. Double-check the IP address. |
 | No "Allow debugging" prompt | Turn USB debugging off and on again, then restart the kit. Some TVs also need **Network ADB debugging**. |
 | Android 11 or newer TV with a "Wireless debugging" screen | Choose "Pair with code" on the TV. When the kit offers it, answer **yes** and type the IP:port and code shown. |
+| Long-pressing OK does nothing | Some remotes handle long presses poorly: use the **Menu** (or ☰) key on the app instead. |
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
 | The old home screen comes back (Google TV) | An update re-enabled it: run option 3 again. |
 | No "TV inputs" tile | The brand isn't recognised: use the remote's Source or Input button, or add your brand to the code (see [Before using the kit](#before-using-the-kit-on-your-tv)). |

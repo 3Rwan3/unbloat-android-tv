@@ -423,7 +423,7 @@ DOCK_NAMES=("Netflix" "YouTube" "Prime Video"
     "Molotov" "Paramount+" "DAZN" "Twitch"
     "Kodi" "YouTube Kids")
 Do_Launcher() {
-    local curHome title enabled i n k sel dockCsv="" found=() fnames=() pk=() r b64 origPkg nowHome
+    local curHome title titleMode devName lc layout enabled i n k sel dockCsv="auto" found=() fnames=() pk=() r origPkg nowHome
     case "$INFO_Brand $INFO_Manufacturer" in *Amazon*)
         Err "Fire TV : Amazon bloque le remplacement de l'écran d'accueil. Utilisez seulement l'allègement (menu 2)." "Fire TV: Amazon blocks replacing the home screen. Use slimming only (menu 2)."
         return ;;
@@ -435,33 +435,56 @@ Do_Launcher() {
     case "$curHome" in ""|"$ZEN_PKG"/*) ;; *) [ -z "$ST_ORIGINAL_HOME" ] && { ST_ORIGINAL_HOME="$curHome"; Save_State; } ;; esac
 
     echo
-    title="$(Ask "Titre affiché en haut à gauche (ex. « Salon », Entrée = aucun titre)" "Title shown top-left (e.g. 'Living room', Enter = no title)")"
+    # --- titre ---
+    devName="$(trim "$(Sh "settings get global device_name" | tr -d '\n')")"
+    { [ -z "$devName" ] || [ "$devName" = "null" ]; } && devName="$INFO_Model"
+    Say "Titre affiché en haut à gauche de l'écran d'accueil :" "Title shown at the top left of the home screen:" White
+    Say "   Entrée = nom de la TV (« $devName »)   ·   tapez - pour ne rien afficher" "   Enter = the TV's name ('$devName')   ·   type - to show nothing" DarkGray
+    title="$(trim "$(Ask "Titre (ex. « Salon », « Chambre de Léa »)" "Title (e.g. 'Living room', 'Emma's room')")")"
+    if [ -z "$title" ]; then titleMode="device"; elif [ "$title" = "-" ]; then titleMode="none"; else titleMode="custom"; fi
+
+    # --- disposition ---
+    echo
+    Say "Disposition du dock :" "Dock layout:" White
+    echo "   1. $(T "4 applis, grandes tuiles" "4 apps, large tiles")"
+    echo "   2. $(T "6 applis sur une ligne" "6 apps in one row")"
+    echo "   3. $(T "8 applis sur deux lignes" "8 apps in two rows")"
+    lc="$(trim "$(Ask "Votre choix (Entrée = 1)" "Your choice (Enter = 1)")")"
+    case "$lc" in 2) layout=6 ;; 3) layout=8 ;; *) layout=4 ;; esac
+
+    # --- applis du dock ---
     enabled="$(Get_Packages -e)"
     for i in "${!DOCK_PKGS[@]}"; do
         in_list "${DOCK_PKGS[$i]}" "$enabled" && { found[${#found[@]}]="${DOCK_PKGS[$i]}"; fnames[${#fnames[@]}]="${DOCK_NAMES[$i]}"; }
     done
     if [ ${#found[@]} -gt 0 ]; then
         echo
-        Say "Applis trouvées pour le dock (4 maximum) :" "Apps found for the dock (4 max):" White
+        Say "Applis trouvées pour le dock ($layout maximum) :" "Apps found for the dock ($layout max):" White
         for i in "${!found[@]}"; do printf '   %d. %s\n' $((i + 1)) "${fnames[$i]}"; done
-        sel="$(Ask "Numéros dans l'ordre voulu, ex. 1,2,4 (Entrée = les 4 premiers)" "Numbers in the order you want, e.g. 1,2,4 (Enter = first 4)")"
+        sel="$(Ask "Numéros dans l'ordre voulu, ex. 1,2,4 (Entrée = choix automatique)" "Numbers in the order you want, e.g. 1,2,4 (Enter = automatic)")"
         if [ -n "$(trim "$sel")" ]; then
-            for n in $(printf '%s' "$sel" | tr ',; ' '   '); do
+            for n in $(printf '%s' "$sel" | tr ',;' '  '); do
                 case "$n" in *[!0-9]*|"") continue ;; esac
                 k=$((10#$n - 1))
-                [ $k -ge 0 ] && [ $k -lt ${#found[@]} ] && [ ${#pk[@]} -lt 4 ] && pk[${#pk[@]}]="${found[$k]}"
+                if [ $k -ge 0 ] && [ $k -lt ${#found[@]} ] && [ ${#pk[@]} -lt $layout ]; then
+                    in_list "${found[$k]}" "$(printf '%s\n' "${pk[@]}")" || pk[${#pk[@]}]="${found[$k]}"
+                fi
             done
-            dockCsv="$(IFS=,; printf '%s' "${pk[*]}")"
+            [ ${#pk[@]} -gt 0 ] && dockCsv="$(IFS=,; printf '%s' "${pk[*]}")"
         fi
     fi
+    Say "   Vous pourrez tout changer ensuite directement sur la TV (appui long sur OK)." "   You can change everything later right on the TV (long-press OK)." DarkGray
+
     Say "Installation de Zen Home..." "Installing Zen Home..." Cyan
     r="$(A install -r "$APK_PATH" | tr '\n' ' ')"
     case "$r" in *Success*) ;; *) Err "Échec de l'installation : $r" "Install failed: $r"; return ;; esac
     Ok "Installé" "Installed"
-    title="$(trim "$title")"
-    b64=""; [ -n "$title" ] && b64="$(printf '%s' "$title" | base64 | tr -d '\n')"
-    if [ -n "$b64" ]; then Sh "settings put global zenhome_title_b64 $b64" >/dev/null; else Sh "settings delete global zenhome_title_b64" >/dev/null; fi
-    if [ -n "$dockCsv" ]; then Sh "settings put global zenhome_dock $dockCsv" >/dev/null; else Sh "settings delete global zenhome_dock" >/dev/null; fi
+    Sh "settings put global zenhome_title_mode $titleMode" >/dev/null
+    if [ "$titleMode" = "custom" ]; then Sh "settings put global zenhome_title_b64 $(printf '%s' "$title" | base64 | tr -d '\n')" >/dev/null
+    else Sh "settings delete global zenhome_title_b64" >/dev/null; fi
+    Sh "settings put global zenhome_layout $layout" >/dev/null
+    Sh "settings put global zenhome_dock $dockCsv" >/dev/null
+    Sh "settings put global zenhome_rev $(date +%s)" >/dev/null   # la TV applique cette config
     Sh "pm grant $ZEN_PKG android.permission.READ_EXTERNAL_STORAGE" >/dev/null
 
     Sh "cmd package set-home-activity $ZEN_PKG/.Home" >/dev/null
@@ -483,6 +506,8 @@ Do_Launcher() {
         *) Warn "La TV n'a pas confirmé Zen Home par défaut ($nowHome). Appuyez sur la touche Accueil : si un choix s'affiche, prenez « Zen Home » puis « Toujours »." "The TV did not confirm Zen Home as default ($nowHome). Press Home: if a chooser appears, pick 'Zen Home' then 'Always'." ;;
     esac
     Capture_TV "zen_home"
+    echo
+    Say "Sur la TV : appui long sur OK (ou touche Menu) sur une appli du dock pour la déplacer, la remplacer, la retirer, changer la disposition ou le titre." "On the TV: long-press OK (or the Menu key) on a dock app to move, replace or remove it, or change the layout or title." Cyan
     Get_Perf
     printf '%s   RAM %s : %s Mo%s\n' "$C_White" "$(T "disponible" "available")" "$PERF_DISPO" "$C_0"
 }
@@ -544,7 +569,7 @@ Do_Restore() {
     case "$ST_ORIGINAL_HOME" in ""|"$ZEN_PKG"/*) ;; *) Sh "cmd package set-home-activity $ST_ORIGINAL_HOME" >/dev/null; Ok "Écran d'accueil : $ST_ORIGINAL_HOME" "Home screen: $ST_ORIGINAL_HOME" ;; esac
     if in_list "$ZEN_PKG" "$(Get_Packages "")"; then
         if YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" 1; then A uninstall "$ZEN_PKG" >/dev/null; Ok "Zen Home désinstallé" "Zen Home uninstalled"; fi
-        for k in zenhome_title_b64 zenhome_dock zenhome_interval; do Sh "settings delete global $k" >/dev/null; done
+        for k in zenhome_title_b64 zenhome_title_mode zenhome_layout zenhome_dock zenhome_rev zenhome_interval; do Sh "settings delete global $k" >/dev/null; done
         Sh "rm -rf /sdcard/ZenHome" >/dev/null
     fi
     ST_DISABLED=""; ST_LAUNCHER_DISABLED=""

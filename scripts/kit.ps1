@@ -330,27 +330,49 @@ function Do-Launcher {
     if ($curHome -and $curHome -notlike "$ZenPkg/*" -and -not $st.original_home) { $st.original_home = $curHome; Save-State $st }
 
     Write-Host ""
-    $title = Ask "Titre affiché en haut à gauche (ex. « Salon », Entrée = aucun titre)" "Title shown top-left (e.g. 'Living room', Enter = no title)"
+    # --- titre ---
+    $devName = ((Sh "settings get global device_name") -join "").Trim()
+    if (-not $devName -or $devName -eq "null") { $devName = $script:Info.Model }
+    Say "Titre affiché en haut à gauche de l'écran d'accueil :" "Title shown at the top left of the home screen:" "White"
+    Say "   Entrée = nom de la TV (« $devName »)   ·   tapez - pour ne rien afficher" "   Enter = the TV's name ('$devName')   ·   type - to show nothing" "DarkGray"
+    $title = (Ask "Titre (ex. « Salon », « Chambre de Léa »)" "Title (e.g. 'Living room', 'Emma's room')").Trim()
+    $titleMode = if ($title -eq "") { "device" } elseif ($title -eq "-") { "none" } else { "custom" }
+
+    # --- disposition ---
+    Write-Host ""
+    Say "Disposition du dock :" "Dock layout:" "White"
+    Write-Host ("   1. " + (T "4 applis, grandes tuiles" "4 apps, large tiles"))
+    Write-Host ("   2. " + (T "6 applis sur une ligne" "6 apps in one row"))
+    Write-Host ("   3. " + (T "8 applis sur deux lignes" "8 apps in two rows"))
+    $lc = (Ask "Votre choix (Entrée = 1)" "Your choice (Enter = 1)").Trim()
+    $layout = switch ($lc) { "2" { 6 } "3" { 8 } default { 4 } }
+
+    # --- applis du dock ---
     $enabled = @(Get-Packages "-e")
     $found = @($KnownDock.Keys | Where-Object { $enabled -contains $_ })
-    $dockCsv = ""
+    $dockCsv = "auto"
     if ($found.Count -gt 0) {
         Write-Host ""
-        Say "Applis trouvées pour le dock (4 maximum) :" "Apps found for the dock (4 max):" "White"
+        Say "Applis trouvées pour le dock ($layout maximum) :" "Apps found for the dock ($layout max):" "White"
         for ($i = 0; $i -lt $found.Count; $i++) { Write-Host ("   {0}. {1}" -f ($i + 1), $KnownDock[$found[$i]]) }
-        $sel = Ask "Numéros dans l'ordre voulu, ex. 1,2,4 (Entrée = les 4 premiers)" "Numbers in the order you want, e.g. 1,2,4 (Enter = first 4)"
+        $sel = Ask "Numéros dans l'ordre voulu, ex. 1,2,4 (Entrée = choix automatique)" "Numbers in the order you want, e.g. 1,2,4 (Enter = automatic)"
         if ($sel.Trim()) {
-            $pk = @(); foreach ($n in ($sel -split "[,; ]+")) { $k = [int]$n - 1; if ($k -ge 0 -and $k -lt $found.Count) { $pk += $found[$k] } }
-            $dockCsv = ($pk | Select-Object -First 4) -join ","
+            $pk = @(); foreach ($n in ($sel -split "[,; ]+")) { if ($n -match "^\d+$") { $k = [int]$n - 1; if ($k -ge 0 -and $k -lt $found.Count -and $pk -notcontains $found[$k]) { $pk += $found[$k] } } }
+            if ($pk.Count -gt 0) { $dockCsv = ($pk | Select-Object -First $layout) -join "," }
         }
     }
+    Say "   Vous pourrez tout changer ensuite directement sur la TV (appui long sur OK)." "   You can change everything later right on the TV (long-press OK)." "DarkGray"
+
     Say "Installation de Zen Home..." "Installing Zen Home..." "Cyan"
     $r = (A install -r $ApkPath) -join " "
     if ($r -notmatch "Success") { Err "Échec de l'installation : $r" "Install failed: $r"; return }
     Ok "Installé" "Installed"
-    $b64 = if ($title.Trim()) { [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($title.Trim())) } else { "" }
-    if ($b64) { Sh "settings put global zenhome_title_b64 $b64" | Out-Null } else { Sh "settings delete global zenhome_title_b64" | Out-Null }
-    if ($dockCsv) { Sh "settings put global zenhome_dock $dockCsv" | Out-Null } else { Sh "settings delete global zenhome_dock" | Out-Null }
+    Sh "settings put global zenhome_title_mode $titleMode" | Out-Null
+    if ($titleMode -eq "custom") { Sh ("settings put global zenhome_title_b64 " + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($title))) | Out-Null }
+    else { Sh "settings delete global zenhome_title_b64" | Out-Null }
+    Sh "settings put global zenhome_layout $layout" | Out-Null
+    Sh "settings put global zenhome_dock $dockCsv" | Out-Null
+    Sh ("settings put global zenhome_rev " + [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()) | Out-Null   # la TV applique cette config
     Sh "pm grant $ZenPkg android.permission.READ_EXTERNAL_STORAGE" | Out-Null
 
     $setOk = ((Sh "cmd package set-home-activity $ZenPkg/.Home") -join " ")
@@ -372,6 +394,8 @@ function Do-Launcher {
         Warn "La TV n'a pas confirmé Zen Home par défaut ($now). Appuyez sur la touche Accueil : si un choix s'affiche, prenez « Zen Home » puis « Toujours »." "The TV did not confirm Zen Home as default ($now). Press Home: if a chooser appears, pick 'Zen Home' then 'Always'."
     }
     Capture-TV "zen_home" | Out-Null
+    Write-Host ""
+    Say "Sur la TV : appui long sur OK (ou touche Menu) sur une appli du dock pour la déplacer, la remplacer, la retirer, changer la disposition ou le titre." "On the TV: long-press OK (or the Menu key) on a dock app to move, replace or remove it, or change the layout or title." "Cyan"
     $p = Get-Perf
     Write-Host ("   RAM " + (T "disponible" "available") + " : $($p.RamDispoMo) Mo") -ForegroundColor White
 }
@@ -426,7 +450,7 @@ function Do-Restore {
     $zen = @(Get-Packages "") -contains $ZenPkg
     if ($zen) {
         if (YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" $true) { A uninstall $ZenPkg | Out-Null; Ok "Zen Home désinstallé" "Zen Home uninstalled" }
-        foreach ($k in "zenhome_title_b64","zenhome_dock","zenhome_interval") { Sh "settings delete global $k" | Out-Null }
+        foreach ($k in "zenhome_title_b64","zenhome_title_mode","zenhome_layout","zenhome_dock","zenhome_rev","zenhome_interval") { Sh "settings delete global $k" | Out-Null }
         Sh "rm -rf /sdcard/ZenHome" | Out-Null
     }
     $st.disabled = @(); $st.launcher_disabled = $null
