@@ -226,6 +226,7 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | TV en Android 11 ou plus récent, avec un écran « Débogage sans fil » | Choisissez « Associer avec un code » sur la TV. Quand le kit le propose, répondez **oui** et tapez l'IP:port et le code affichés. |
 | L'appui long sur OK ne fait rien | Certaines télécommandes gèrent mal l'appui long : utilisez la touche **Menu** (ou ☰) sur l'appli. |
 | Zen Home ne s'affiche pas avec le bouton Accueil | Appuyez sur Accueil : si un choix s'affiche, prenez **Zen Home** puis **Toujours**. Sinon, relancez l'option 3 et acceptez de désactiver l'accueil d'origine. |
+| Logo Google TV en boucle après l'option 3 | Un écran de secours de Google a pris la place de l'accueil. Appuyez sur Accueil et choisissez **Zen Home** puis **Toujours**. Sinon, lancez l'option 6 depuis le PC, redémarrez la TV, puis refaites l'option 3 avec la dernière version du kit. |
 | L'ancien accueil revient (Google TV) | Une mise à jour l'a réactivé : relancez l'option 3. |
 | La tuile « Entrées TV » est absente | La marque n'est pas reconnue : utilisez le bouton Source ou Input de la télécommande, ou ajoutez votre marque dans le code (voir [Avant d'utiliser le kit](#avant-dutiliser-le-kit-sur-votre-tv)). |
 | « ignoré (non modifiable sur cette TV) » s'affiche | C'est normal : la TV protège ce paquet ou ne l'a pas. Rien n'a été modifié pour lui. |

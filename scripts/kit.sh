@@ -13,6 +13,7 @@ APK_PATH="$KIT/ecran-accueil/ZenHome.apk"
 PHOTOS_DIR="$KIT/mes_photos"
 CONF_FILE="$KIT/config_tv.json"
 ZEN_PKG="tv.zenhome"
+GTV_FALLBACK="com.google.android.tungsten.setupwraith"   # accueil de secours de Google TV
 mkdir -p "$TOOLS" "$SAVES"
 
 LANG_FR=0
@@ -493,7 +494,9 @@ Do_Launcher() {
     if [ -n "$origPkg" ] && [ "$origPkg" != "$ZEN_PKG" ]; then
         Say "L'écran d'accueil d'origine ($origPkg) tourne souvent en fond et consomme beaucoup." "The original home screen ($origPkg) often runs in the background and uses a lot of resources." White
         if YesNo "Le désactiver (recommandé, réversible) ?" "Disable it (recommended, reversible)?" 1; then
-            Disable_Packages launcher "$origPkg"
+            # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
+            if in_list "$GTV_FALLBACK" "$(Get_Packages -e)"; then Disable_Packages launcher "$origPkg" "$GTV_FALLBACK"
+            else Disable_Packages launcher "$origPkg"; fi
             Get_State; ST_LAUNCHER_DISABLED="$origPkg"; Save_State
         fi
     fi

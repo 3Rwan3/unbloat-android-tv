@@ -13,6 +13,7 @@ $ApkPath  = Join-Path $Kit "ecran-accueil\ZenHome.apk"
 $PhotosDir= Join-Path $Kit "mes_photos"
 $ConfFile = Join-Path $Kit "config_tv.json"
 $ZenPkg   = "tv.zenhome"
+$GtvFallback = "com.google.android.tungsten.setupwraith"   # accueil de secours de Google TV
 $LangFr = ((Get-UICulture).Name -like "fr*") -or ((Get-Culture).Name -like "fr*")
 New-Item -ItemType Directory -Force $Tools, $Saves | Out-Null
 
@@ -381,7 +382,10 @@ function Do-Launcher {
     if ($origPkg -and $origPkg -ne $ZenPkg) {
         Say "L'écran d'accueil d'origine ($origPkg) tourne souvent en fond et consomme beaucoup." "The original home screen ($origPkg) often runs in the background and uses a lot of resources." "White"
         if (YesNo "Le désactiver (recommandé, réversible) ?" "Disable it (recommended, reversible)?" $true) {
-            Disable-Packages @($origPkg) "launcher"
+            $toOff = @($origPkg)
+            # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
+            if ((Get-Packages "-e") -contains $GtvFallback) { $toOff += $GtvFallback }
+            Disable-Packages $toOff "launcher"
             $st = Get-State; $st.launcher_disabled = $origPkg; Save-State $st
         }
     }
