@@ -226,6 +226,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | Android 11 or newer TV with a "Wireless debugging" screen | Choose "Pair with code" on the TV. When the kit offers it, answer **yes** and type the IP:port and code shown. |
 | Long-pressing OK does nothing | Some remotes handle long presses poorly: use the **Menu** (or ☰) key on the app instead. |
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
+| The remote's Source button no longer works | On some TVs (especially Google TV), the original home screen handles this button. Run option 6 to re-enable it, then run option 3 again and answer **no** when the kit offers to disable it. |
 | Google TV logo looping after option 3 | A Google fallback screen took the home screen's place. Press Home and pick **Zen Home** then **Always**. Otherwise, run option 6 from the PC, restart the TV, then run option 3 again with the latest version of the kit. |
 | The old home screen comes back (Google TV) | An update re-enabled it: run option 3 again. |
 | No "TV inputs" tile | The brand isn't recognised: use the remote's Source or Input button, or add your brand to the code (see [Before using the kit](#before-using-the-kit-on-your-tv)). |

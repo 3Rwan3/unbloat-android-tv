@@ -424,7 +424,7 @@ DOCK_NAMES=("Netflix" "YouTube" "Prime Video"
     "Molotov" "Paramount+" "DAZN" "Twitch"
     "Kodi" "YouTube Kids")
 Do_Launcher() {
-    local curHome title titleMode devName lc layout enabled i n k sel dockCsv="auto" found=() fnames=() pk=() r origPkg nowHome
+    local curHome title titleMode devName lc layout enabled i n k sel dockCsv="auto" found=() fnames=() pk=() r origPkg nowHome toOff q
     case "$INFO_Brand $INFO_Manufacturer" in *Amazon*)
         Err "Fire TV : Amazon bloque le remplacement de l'écran d'accueil. Utilisez seulement l'allègement (menu 2)." "Fire TV: Amazon blocks replacing the home screen. Use slimming only (menu 2)."
         return ;;
@@ -489,24 +489,43 @@ Do_Launcher() {
     Sh "pm grant $ZEN_PKG android.permission.READ_EXTERNAL_STORAGE" >/dev/null
 
     Sh "cmd package set-home-activity $ZEN_PKG/.Home" >/dev/null
-    origPkg="${ST_ORIGINAL_HOME%%/*}"
-    echo
-    if [ -n "$origPkg" ] && [ "$origPkg" != "$ZEN_PKG" ]; then
-        Say "L'écran d'accueil d'origine ($origPkg) tourne souvent en fond et consomme beaucoup." "The original home screen ($origPkg) often runs in the background and uses a lot of resources." White
-        if YesNo "Le désactiver (recommandé, réversible) ?" "Disable it (recommended, reversible)?" 1; then
-            # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
-            if in_list "$GTV_FALLBACK" "$(Get_Packages -e)"; then Disable_Packages launcher "$origPkg" "$GTV_FALLBACK"
-            else Disable_Packages launcher "$origPkg"; fi
-            Get_State; ST_LAUNCHER_DISABLED="$origPkg"; Save_State
-        fi
-    fi
     Sh "am force-stop $ZEN_PKG" >/dev/null
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 6
     nowHome="$(Get_Home)"
+    origPkg="${ST_ORIGINAL_HOME%%/*}"
+    echo
     case "$nowHome" in
-        "$ZEN_PKG"/*) Ok "Zen Home est l'écran d'accueil." "Zen Home is the home screen." ;;
-        *) Warn "La TV n'a pas confirmé Zen Home par défaut ($nowHome). Appuyez sur la touche Accueil : si un choix s'affiche, prenez « Zen Home » puis « Toujours »." "The TV did not confirm Zen Home as default ($nowHome). Press Home: if a chooser appears, pick 'Zen Home' then 'Always'." ;;
+        "$ZEN_PKG"/*)
+            Ok "Zen Home est l'écran d'accueil." "Zen Home is the home screen."
+            # l'accueil d'origine n'est proposé à la désactivation que si Zen Home est confirmé (sinon la TV n'aurait plus d'accueil)
+            if [ -n "$origPkg" ] && [ "$origPkg" != "$ZEN_PKG" ]; then
+                Say "L'écran d'accueil d'origine ($origPkg) tourne souvent en fond et consomme beaucoup." "The original home screen ($origPkg) often runs in the background and uses a lot of resources." White
+                Warn "Sur certaines TV (surtout Google TV), la touche Source de la télécommande ne marche plus dans les applis une fois l'accueil d'origine désactivé. L'option 6 remet tout." "On some TVs (especially Google TV), the remote's Source button stops working inside apps once the original home screen is disabled. Option 6 puts everything back."
+                if YesNo "Le désactiver (recommandé, réversible) ?" "Disable it (recommended, reversible)?" 1; then
+                    toOff="$origPkg"
+                    # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
+                    in_list "$GTV_FALLBACK" "$(Get_Packages -e)" && toOff="$toOff $GTV_FALLBACK"
+                    Disable_Packages launcher $toOff
+                    Get_State; ST_LAUNCHER_DISABLED="$origPkg"; Save_State
+                    # sécurité : si la TV n'accepte plus Zen Home comme accueil, on réactive tout de suite
+                    Sh "input keyevent KEYCODE_HOME" >/dev/null
+                    sleep 4
+                    case "$(Get_Home)" in
+                        "$ZEN_PKG"/*) ;;
+                        *)  Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
+                            for q in $toOff; do Sh "pm enable $q" >/dev/null; done
+                            Get_State
+                            ST_DISABLED="$(printf '%s\n' "$ST_DISABLED" | grep -vxF -e "$origPkg" -e "$GTV_FALLBACK")"
+                            ST_LAUNCHER_DISABLED=""; Save_State ;;
+                    esac
+                fi
+            fi ;;
+        *)
+            Warn "La TV n'a pas confirmé Zen Home par défaut ($nowHome). Appuyez sur la touche Accueil : si un choix s'affiche, prenez « Zen Home » puis « Toujours »." "The TV did not confirm Zen Home as default ($nowHome). Press Home: if a chooser appears, pick 'Zen Home' then 'Always'."
+            if [ -n "$origPkg" ] && [ "$origPkg" != "$ZEN_PKG" ]; then
+                Say "Par sécurité, l'accueil d'origine n'a pas été désactivé. Une fois Zen Home choisi, relancez l'option 3 pour le désactiver." "For safety, the original home screen was not disabled. Once Zen Home is picked, run option 3 again to disable it." DarkGray
+            fi ;;
     esac
     Capture_TV "zen_home"
     echo
