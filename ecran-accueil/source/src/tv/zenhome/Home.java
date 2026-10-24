@@ -437,7 +437,15 @@ public class Home extends Activity {
     void wire(final View v, final Runnable r, final float scale) {
         v.setFocusable(true);
         v.setClickable(true);
-        v.setOnClickListener(new View.OnClickListener() { public void onClick(View x) { if (moveIndex < 0) r.run(); } });
+        v.setOnClickListener(new View.OnClickListener() { public void onClick(View x) {
+            if (moveIndex >= 0) return;
+            if (isInDock(x)) {
+                // dock : on attend un peu, une rafale de OK (telecommandes Sony) vaut un appui long
+                if (pendingClick != null) h.removeCallbacks(pendingClick);
+                pendingClick = r;
+                h.postDelayed(r, BURST_GAP_MS);
+            } else r.run();
+        } });
         v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View x, boolean has) {
                 x.animate().scaleX(has ? scale : 1f).scaleY(has ? scale : 1f)
@@ -556,6 +564,16 @@ public class Home extends Activity {
 
     boolean swallowOkUp = false;
 
+    // Certaines telecommandes (Sony a infrarouge) envoient un appui maintenu comme une rafale
+    // d'appuis courts : BURST_PRESSES appuis espaces de moins de BURST_GAP_MS = appui long.
+    static final long BURST_GAP_MS = 250;
+    static final int BURST_PRESSES = 3;
+    Runnable pendingClick;            // clic du dock en attente (annule si une rafale commence)
+    View burstView;
+    int okBurst = 0;
+    long lastOkUp = 0, lastOkEvent = 0;
+    boolean burstSwallow = false;     // rafale deja transformee en appui long : on avale la suite
+
     static boolean isOk(int c) {
         return c == KeyEvent.KEYCODE_DPAD_CENTER || c == KeyEvent.KEYCODE_ENTER || c == KeyEvent.KEYCODE_NUMPAD_ENTER;
     }
@@ -565,6 +583,28 @@ public class Home extends Activity {
         int kc = e.getKeyCode();
         // appui long sur OK, aussi pour les telecommandes qui envoient la touche en repetition
         if (isOk(kc) && moveIndex < 0) {
+            long t = e.getEventTime();
+            if (burstSwallow) {
+                if (t - lastOkEvent < BURST_GAP_MS) { lastOkEvent = t; return true; }
+                burstSwallow = false;
+            }
+            lastOkEvent = t;
+            if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0 && overlays.isEmpty()) {
+                View f = getCurrentFocus();
+                if (f != null && isInDock(f)) {
+                    okBurst = (f == burstView && t - lastOkUp < BURST_GAP_MS) ? okBurst + 1 : 1;
+                    burstView = f;
+                    if (okBurst >= 2 && pendingClick != null) { h.removeCallbacks(pendingClick); pendingClick = null; }
+                    if (okBurst >= BURST_PRESSES) {
+                        okBurst = 0;
+                        burstSwallow = true;
+                        f.cancelLongPress(); f.setPressed(false);
+                        showTileMenu(bigTiles.indexOf(f));
+                        return true;
+                    }
+                }
+            }
+            if (e.getAction() == KeyEvent.ACTION_UP) lastOkUp = t;
             if (e.getAction() == KeyEvent.ACTION_UP && swallowOkUp) { swallowOkUp = false; return true; }
             if (e.getAction() == KeyEvent.ACTION_DOWN && overlays.isEmpty() && (e.getRepeatCount() >= 1 || e.isLongPress())) {
                 View f = getCurrentFocus();

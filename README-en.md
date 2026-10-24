@@ -224,7 +224,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | "Could not connect" | Make sure the TV is on (not in standby), on the same network as the PC, and that **USB debugging** is enabled. Double-check the IP address. |
 | No "Allow debugging" prompt | Turn USB debugging off and on again, then restart the kit. Some TVs also need **Network ADB debugging**. |
 | Android 11 or newer TV with a "Wireless debugging" screen | Choose "Pair with code" on the TV. When the kit offers it, answer **yes** and type the IP:port and code shown. |
-| Long-pressing OK does nothing | Some remotes handle long presses poorly: use the **Menu** (or ☰) key on the app instead. |
+| Long-pressing OK does nothing | Hold OK for at least half a second: Zen Home also recognises remotes that send a long press as a burst of short presses (Sony, for example). Otherwise, use the **Menu** (or ☰) key on the app. |
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
 | The remote's Source button no longer works | On some TVs (especially Google TV), the original home screen handles this button. Run option 6 to re-enable it, then run option 3 again and answer **no** when the kit offers to disable it. |
 | Google TV logo looping after option 3 | A Google fallback screen took the home screen's place. Press Home and pick **Zen Home** then **Always**. Otherwise, run option 6 from the PC, restart the TV, then run option 3 again with the latest version of the kit. |
