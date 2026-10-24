@@ -82,11 +82,12 @@ These figures come from a single TV. Your results will differ.
 |---|---|---|
 | **Android TV / Google TV** sets: TCL, Sony, Philips, Xiaomi, Hisense (Android models), Sharp, Toshiba… | ✅ | ✅ |
 | Boxes: Nvidia Shield, Chromecast with Google TV, Xiaomi Mi Box, Google TV Streamer | ✅ | ✅ |
+| Android TV / Google TV projectors: XGIMI… | ✅ | ✅ |
 | **Amazon Fire TV / Fire Stick** (Fire OS) | ✅ | ❌ Use a dedicated tool ([see below](#fire-tv--fire-stick-changing-the-home-screen)) |
 | Fire TV running **Vega OS** (Fire TV Stick 4K Select and models released since late 2025) | ❌ Not Android | ❌ |
 | Samsung (Tizen), LG (webOS), Hisense VIDAA, Roku, Apple TV | ❌ Not Android | ❌ |
 
-**Tested for real on:** a TCL running Android 9. The other devices in this table should work, since they use the same Android commands, but they have not all been tested.
+**Tested for real on:** a TCL BeyondTV (Android 9). Also tested by users: a TCL BeyondTV2 (Android 9) and an XGIMI MoGo 3 Pro projector (Google TV, Android 11). The other devices in this table should work, since they use the same Android commands, but they have not all been tested.
 
 ### Fire TV / Fire Stick: changing the home screen
 
@@ -113,6 +114,7 @@ On top of the Google part shared by every Android TV, the kit includes specific 
 | **Sharp, Toshiba, Thomson, Philco** (Android) | Demo mode, Anoki, Vestel telemetry, Skyworth recommendations | Free channels, screen mirroring |
 | **Nvidia Shield** | Nvidia telemetry and diagnostics | GeForce NOW, GameStream, game overlay |
 | **Amazon Fire TV** | Viewing analysis, ad ID, promos, metrics | Alexa, Amazon Photos/Music, games, Amazon Kids, Silk |
+| **XGIMI** (projectors) | Bug reports sent to XGIMI | Douban FM (Chinese radio) |
 
 These lists were built in October 2026 from several community sources (Universal Android Debloater, CleanYourTV per-model lists, shield_optimizer, dumbtv, forums). Packages known to break something (HDMI inputs, remote, updates, settings) were deliberately left out.
 
@@ -228,7 +230,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
 | The remote's Source button no longer works | On some TVs (especially Google TV), the original home screen handles this button. Run option 6 to re-enable it, then run option 3 again and answer **no** when the kit offers to disable it. |
 | Google TV logo looping after option 3 | A Google fallback screen took the home screen's place. Press Home and pick **Zen Home** then **Always**. Otherwise, run option 6 from the PC, restart the TV, then run option 3 again with the latest version of the kit. |
-| The old home screen comes back (Google TV) | An update re-enabled it: run option 3 again. |
+| The old home screen comes back (Google TV) | On Google TV, the original home screen can re-enable itself a few minutes after option 3, or after an update. Zen Home usually stays the home screen (option 1 reports what was re-enabled). If the old one takes over, run option 3 again. |
 | No "TV inputs" tile | The brand isn't recognised: use the remote's Source or Input button, or add your brand to the code (see [Before using the kit](#before-using-the-kit-on-your-tv)). |
 | "skipped (cannot be changed on this TV)" is shown | That's normal: the TV protects this package or doesn't have it. Nothing was changed for it. |
 | A TV feature stopped working | Run option 6 to restore everything, then run option 2 again and answer "yes" for that feature. |

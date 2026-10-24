@@ -82,11 +82,12 @@ Ces chiffres viennent d'une seule TV. Le gain sera différent sur la vôtre.
 |---|---|---|
 | TV **Android TV / Google TV** : TCL, Sony, Philips, Xiaomi, Hisense (modèles Android), Sharp, Toshiba… | ✅ | ✅ |
 | Boîtiers : Nvidia Shield, Chromecast avec Google TV, Xiaomi Mi Box, Google TV Streamer | ✅ | ✅ |
+| Projecteurs sous Android TV / Google TV : XGIMI… | ✅ | ✅ |
 | **Amazon Fire TV / Fire Stick** (Fire OS) | ✅ | ❌ Utilisez un outil dédié ([voir ci-dessous](#fire-tv--fire-stick--changer-laccueil)) |
 | Fire TV sous **Vega OS** (Fire TV Stick 4K Select et modèles sortis depuis fin 2025) | ❌ Pas Android | ❌ |
 | Samsung (Tizen), LG (webOS), Hisense VIDAA, Roku, Apple TV | ❌ Pas Android | ❌ |
 
-**Testé en conditions réelles :** une TCL sous Android 9. Les autres appareils de ce tableau devraient fonctionner, car ils utilisent les mêmes commandes Android, mais ils n'ont pas tous été testés.
+**Testé en conditions réelles :** une TCL BeyondTV (Android 9). Testés aussi par des utilisateurs : une TCL BeyondTV2 (Android 9) et un projecteur XGIMI MoGo 3 Pro (Google TV, Android 11). Les autres appareils de ce tableau devraient fonctionner, car ils utilisent les mêmes commandes Android, mais ils n'ont pas tous été testés.
 
 ### Fire TV / Fire Stick : changer l'accueil
 
@@ -113,6 +114,7 @@ Le kit contient des listes spécifiques pour chaque grande marque, en plus de la
 | **Sharp, Toshiba, Thomson, Philco** (Android) | Mode démo, Anoki, télémétrie Vestel, recommandations Skyworth | Chaînes gratuites, recopie d'écran |
 | **Nvidia Shield** | Télémétrie et diagnostics Nvidia | GeForce NOW, GameStream, superposition jeux |
 | **Amazon Fire TV** | Analyse de ce que vous regardez, identifiant pub, promos, métriques | Alexa, Amazon Photos/Music, jeux, Amazon Kids, Silk |
+| **XGIMI** (projecteurs) | Rapports de bug envoyés à XGIMI | Douban FM (radio chinoise) |
 
 Ces listes ont été établies en octobre 2026 à partir de plusieurs sources communautaires (Universal Android Debloater, listes par modèle CleanYourTV, shield_optimizer, dumbtv, forums). Les paquets connus pour casser quelque chose (entrées HDMI, télécommande, mises à jour, réglages) ont été volontairement exclus.
 
@@ -228,7 +230,7 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | Zen Home ne s'affiche pas avec le bouton Accueil | Appuyez sur Accueil : si un choix s'affiche, prenez **Zen Home** puis **Toujours**. Sinon, relancez l'option 3 et acceptez de désactiver l'accueil d'origine. |
 | La touche Source de la télécommande ne marche plus | Sur certaines TV (surtout Google TV), c'est l'accueil d'origine qui gère cette touche. Lancez l'option 6 pour le réactiver, puis refaites l'option 3 en répondant **non** quand le kit propose de le désactiver. |
 | Logo Google TV en boucle après l'option 3 | Un écran de secours de Google a pris la place de l'accueil. Appuyez sur Accueil et choisissez **Zen Home** puis **Toujours**. Sinon, lancez l'option 6 depuis le PC, redémarrez la TV, puis refaites l'option 3 avec la dernière version du kit. |
-| L'ancien accueil revient (Google TV) | Une mise à jour l'a réactivé : relancez l'option 3. |
+| L'ancien accueil revient (Google TV) | Sur Google TV, l'accueil d'origine peut se réactiver tout seul quelques minutes après l'option 3, ou après une mise à jour. Zen Home reste en général l'accueil (l'option 1 signale ce qui a été réactivé). S'il reprend la main, relancez l'option 3. |
 | La tuile « Entrées TV » est absente | La marque n'est pas reconnue : utilisez le bouton Source ou Input de la télécommande, ou ajoutez votre marque dans le code (voir [Avant d'utiliser le kit](#avant-dutiliser-le-kit-sur-votre-tv)). |
 | « ignoré (non modifiable sur cette TV) » s'affiche | C'est normal : la TV protège ce paquet ou ne l'a pas. Rien n'a été modifié pour lui. |
 | Une fonction de la TV ne marche plus | Relancez l'option 6 pour tout restaurer, puis refaites l'option 2 en répondant « oui » à cette fonction. |

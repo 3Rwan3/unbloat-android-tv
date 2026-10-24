@@ -223,6 +223,12 @@ function Do-Backup([bool]$quiet = $false) {
         }
     }
     Save-State $st
+    # ce que le kit a désactivé mais que la TV a réactivé d'elle-même (fréquent sur Google TV)
+    if ($st.disabled.Count -gt 0) {
+        $offNow = @(Get-Packages "-d")
+        $back = @($st.disabled | Where-Object { $offNow -notcontains $_ })
+        if ($back.Count -gt 0) { Warn ("Réactivés par la TV depuis le passage du kit : " + ($back -join ", ") + ". Relancez l'option 2 ou 3 si besoin.") ("Re-enabled by the TV since the kit ran: " + ($back -join ", ") + ". Run option 2 or 3 again if needed.") }
+    }
     $cap = Capture-TV "etat_initial"
     if ($cap -and (Test-Path $cap)) { Copy-Item $cap "$d\capture.png" }
     $sum = @(

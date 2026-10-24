@@ -118,3 +118,8 @@ com.amazon.wirelessmetrics.service,com.amazon.tv.fw.metrics,com.amazon.perfcolle
 com.amazon.tv.democontent.provider,com.amazon.storm.lightning.tutorial,com.amazon.tv.releasenotes | Démo, tutoriel, notes de version | Demo, tutorial, release notes
 com.amazon.device.sale.service,com.amazon.systemnotices,com.amazon.tv.website_launcher | Notifications et pages promo | Promo notifications and pages
 com.amazon.ods.kindleconnect                   | Intégration Kindle | Kindle integration
+
+# ---------------- XGIMI (projecteurs Android TV / Google TV) ----------------
+# Ne jamais ajouter : com.xgimi.autokst (keystone), com.xgimi.tof (autofocus), com.xgimi.misckey (télécommande),
+# com.xgimi.xgimiservice, com.xgimi.ota.* (mises à jour) et les autres services de projection.
+com.xgimi.bugreportsender                      | Envoi de rapports de bug à XGIMI | Bug reports to XGIMI

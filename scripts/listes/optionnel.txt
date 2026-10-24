@@ -81,3 +81,6 @@ com.amazon.imdb.tv.android.app                 | Freevee | Freevee
 com.amazon.cloud9                              | Navigateur Silk | Silk browser
 com.amazon.ftv.screensaver                     | Économiseur d'écran Amazon | Amazon screensaver
 com.amazon.tv.localgallery                     | Photos et vidéos depuis une clé USB | Photos and videos from a USB stick
+
+# ---------------- XGIMI ----------------
+com.xgimi.doubanfm                             | Douban FM (radio chinoise) | Douban FM (Chinese radio)

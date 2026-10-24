@@ -306,6 +306,13 @@ Do_Backup() {
         ST_ANIM_ANIMATOR="$(trim "$(Sh "settings get global animator_duration_scale" | tr -d '\n')")"
     fi
     Save_State
+    # ce que le kit a désactivé mais que la TV a réactivé d'elle-même (fréquent sur Google TV)
+    if [ -n "$ST_DISABLED" ]; then
+        local offNow back="" q
+        offNow="$(Get_Packages -d)"
+        for q in $ST_DISABLED; do in_list "$q" "$offNow" || back="$back${back:+, }$q"; done
+        [ -n "$back" ] && Warn "Réactivés par la TV depuis le passage du kit : $back. Relancez l'option 2 ou 3 si besoin." "Re-enabled by the TV since the kit ran: $back. Run option 2 or 3 again if needed."
+    fi
     Capture_TV "etat_initial"
     [ -f "$CAPTURE" ] && cp "$CAPTURE" "$d/capture.png"
     if [ "$freq" -gt 4000 ]; then wf="5 GHz"; elif [ "$freq" -gt 0 ]; then wf="2.4 GHz"; else wf="$(T "câble ou inconnu" "cable or unknown")"; fi
