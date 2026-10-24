@@ -2,7 +2,7 @@
 
 [🇫🇷 Version française](README.md) · **🇬🇧 English**
 
-Is your Android TV laggy, full of ads, with audio drifting out of sync during movies? This kit slims it down in a few minutes from a Windows PC. It also installs **Zen Home**, a minimalist Apple TV-style home screen.
+Is your Android TV laggy, full of ads, with audio drifting out of sync during movies? This kit slims it down in a few minutes from a Windows PC, a Mac or a Linux PC. It also installs **Zen Home**, a minimalist Apple TV-style home screen.
 
 <table>
   <tr>
@@ -46,7 +46,7 @@ Is your Android TV laggy, full of ads, with audio drifting out of sync during mo
 ## Quick start
 
 1. Enable developer mode and debugging on the TV ([see how](#prepare-the-tv-5-minutes)).
-2. Double-click **`LANCER.bat`** and type the TV's IP address.
+2. Double-click **`LANCER.bat`** (Windows) or **`LANCER.command`** (macOS), or run **`./LANCER.sh`** (Linux), then type the TV's IP address.
 3. Accept "Allow debugging" on the TV.
 4. Run options **1** (backup), **2** (slimming) and **3** (home screen), in that order.
 5. If you don't like something, option **6** puts everything back as before.
@@ -107,7 +107,7 @@ These lists were built in October 2026 from several community sources (Universal
 
 **The kit only offers what exists on your TV.** A Sony will only see the Google and Sony lines, for example. If a package is missing or the TV refuses to disable it (some are locked, especially on Fire TV), it is simply skipped and the kit carries on.
 
-**You need:** a **Windows 10 or 11** PC on the **same network** as the TV. ADB, Google's official tool to talk to Android, is downloaded automatically on first launch (about 7 MB).
+**You need:** a **Windows 10 or 11**, **macOS** or **Linux** computer on the **same network** as the TV. On Linux, `curl` (or `wget`) and `unzip` must be installed. ADB, Google's official tool to talk to Android, is downloaded automatically on first launch (about 7 MB).
 
 ## Before using the kit on your TV
 
@@ -149,14 +149,16 @@ In **Settings → Network & Internet → (your Wi-Fi)**, or **About → Status**
 
 ## How to use it
 
-1. Double-click **`LANCER.bat`**.
+1. Double-click **`LANCER.bat`** (Windows) or **`LANCER.command`** (macOS). On Linux, open a terminal in the kit folder and type `./LANCER.sh`.
 2. Pick a menu option. The first time, the kit asks for the TV's IP address.
 3. **Look at the TV**: an "Allow USB debugging?" prompt appears. Tick **"Always allow from this computer"**, then **OK**.
 4. The kit shows the brand and model it found. Check it's your TV before confirming.
 
 **Recommended order: 1, then 2, then 3.** The kit makes an automatic backup before the first change anyway.
 
-The kit speaks French if Windows is in French, otherwise English.
+The kit speaks French if the system (Windows, macOS or Linux) is in French, otherwise English.
+
+The Windows (`scripts/kit.ps1`) and macOS/Linux (`scripts/kit.sh`) versions do exactly the same thing and share the same lists and the same `sauvegardes/` folder: you can start on one computer and restore from another.
 
 ## Customising Zen Home
 
@@ -200,18 +202,23 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | A TV feature stopped working | Run option 6 to restore everything, then run option 2 again and answer "yes" for that feature. |
 | Movies still stutter | Switch the TV to **5 GHz** Wi-Fi or an Ethernet cable. Turn off motion smoothing (MEMC, Motion) in the picture settings. If that's not enough, the TV lacks power: an external streaming box will be smoother. |
 | Windows blocks `LANCER.bat` | Right-click the file → **Properties** → tick **Unblock**. Or "More info" → **Run anyway**. |
+| macOS won't open `LANCER.command` | Right-click (or Ctrl+click) the file → **Open** → **Open**. If "permission denied" shows up, open Terminal in the kit folder and type `bash LANCER.sh`. |
+| Linux: "Permission denied" on `LANCER.sh` | Run `chmod +x LANCER.sh` once, or start it with `bash LANCER.sh`. |
 
 ## Folder contents
 
 ```
 Kit-TV-Android/
-├── LANCER.bat              ← double-click here
+├── LANCER.bat              ← Windows: double-click here
+├── LANCER.command          ← macOS: double-click here
+├── LANCER.sh               ← Linux: ./LANCER.sh
 ├── README.md / README-en.md
 ├── CREDITS.md              ← photo authors and licenses
 ├── LICENSE                 ← MIT license
 ├── docs/                 ← README images
 ├── scripts/
-│   ├── kit.ps1             ← the program (PowerShell)
+│   ├── kit.ps1             ← the program (PowerShell, Windows)
+│   ├── kit.sh              ← the same program (bash, macOS/Linux)
 │   └── listes/             ← what gets disabled (editable)
 ├── ecran-accueil/
 │   ├── ZenHome.apk         ← the ready-to-install home screen

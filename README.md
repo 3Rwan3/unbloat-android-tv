@@ -2,7 +2,7 @@
 
 **🇫🇷 Français** · [🇬🇧 English version](README-en.md)
 
-Votre TV Android rame, affiche des pubs partout, et le son se décale pendant les films ? Ce kit l'allège en quelques minutes depuis un PC Windows. Il installe aussi **Zen Home**, un écran d'accueil minimaliste façon Apple TV.
+Votre TV Android rame, affiche des pubs partout, et le son se décale pendant les films ? Ce kit l'allège en quelques minutes depuis un PC Windows, un Mac ou un PC Linux. Il installe aussi **Zen Home**, un écran d'accueil minimaliste façon Apple TV.
 
 <table>
   <tr>
@@ -46,7 +46,7 @@ Votre TV Android rame, affiche des pubs partout, et le son se décale pendant le
 ## En bref
 
 1. Activez le mode développeur et le débogage sur la TV ([voir comment](#préparer-la-tv-5-minutes)).
-2. Double-cliquez sur **`LANCER.bat`** et tapez l'adresse IP de la TV.
+2. Double-cliquez sur **`LANCER.bat`** (Windows) ou **`LANCER.command`** (macOS), ou lancez **`./LANCER.sh`** (Linux), puis tapez l'adresse IP de la TV.
 3. Acceptez « Autoriser le débogage » sur la TV.
 4. Faites dans l'ordre les options **1** (sauvegarde), **2** (allègement) et **3** (écran d'accueil).
 5. Si quelque chose ne vous plaît pas, l'option **6** remet tout comme avant.
@@ -107,7 +107,7 @@ Ces listes ont été établies en octobre 2026 à partir de plusieurs sources co
 
 **Le kit ne propose que ce qui existe sur votre TV.** Une Sony ne verra que les lignes Google et Sony, par exemple. Si un paquet est absent ou si la TV refuse de le désactiver (certains sont verrouillés, surtout sur Fire TV), il est simplement ignoré et le kit continue.
 
-**Il vous faut :** un PC sous **Windows 10 ou 11**, connecté au **même réseau** que la TV. ADB, l'outil officiel de Google pour parler à Android, est téléchargé automatiquement au premier lancement (environ 7 Mo).
+**Il vous faut :** un ordinateur sous **Windows 10 ou 11**, **macOS** ou **Linux**, connecté au **même réseau** que la TV. Sur Linux, `curl` (ou `wget`) et `unzip` doivent être installés. ADB, l'outil officiel de Google pour parler à Android, est téléchargé automatiquement au premier lancement (environ 7 Mo).
 
 ## Avant d'utiliser le kit sur votre TV
 
@@ -149,14 +149,16 @@ Dans **Paramètres → Réseau et Internet → (votre Wi-Fi)**, ou **À propos �
 
 ## Utilisation
 
-1. Double-cliquez sur **`LANCER.bat`**.
+1. Double-cliquez sur **`LANCER.bat`** (Windows) ou **`LANCER.command`** (macOS). Sur Linux, ouvrez un terminal dans le dossier du kit et tapez `./LANCER.sh`.
 2. Choisissez une option du menu. La première fois, le kit demande l'adresse IP de la TV.
 3. **Regardez la TV** : la fenêtre « Autoriser le débogage USB ? » s'affiche. Cochez **« Toujours autoriser depuis cet ordinateur »**, puis **OK**.
 4. Le kit affiche la marque et le modèle trouvés. Vérifiez que c'est bien votre TV avant de confirmer.
 
 **Ordre conseillé : 1, puis 2, puis 3.** Le kit fait de toute façon une sauvegarde automatique avant la première modification.
 
-Le kit parle français si Windows est en français, sinon anglais.
+Le kit parle français si le système (Windows, macOS ou Linux) est en français, sinon anglais.
+
+Les versions Windows (`scripts/kit.ps1`) et macOS/Linux (`scripts/kit.sh`) font exactement la même chose et partagent les mêmes listes et le même dossier `sauvegardes/` : vous pouvez commencer sur un ordinateur et restaurer depuis un autre.
 
 ## Personnaliser Zen Home
 
@@ -200,18 +202,23 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | Une fonction de la TV ne marche plus | Relancez l'option 6 pour tout restaurer, puis refaites l'option 2 en répondant « oui » à cette fonction. |
 | Ça rame encore pendant les films | Passez la TV en Wi-Fi **5 GHz** ou en câble Ethernet. Désactivez le lissage de mouvement (MEMC, Motion) dans les réglages d'image. Si ça ne suffit pas, la TV manque de puissance : un boîtier externe sera plus fluide. |
 | Windows bloque `LANCER.bat` | Clic droit sur le fichier → **Propriétés** → cochez **Débloquer**. Ou « Informations complémentaires » → **Exécuter quand même**. |
+| macOS refuse d'ouvrir `LANCER.command` | Clic droit (ou Ctrl+clic) sur le fichier → **Ouvrir** → **Ouvrir**. Si « permission refusée » s'affiche, ouvrez le Terminal dans le dossier du kit et tapez `bash LANCER.sh`. |
+| Linux : « Permission non accordée » sur `LANCER.sh` | Tapez `chmod +x LANCER.sh` une fois, ou lancez `bash LANCER.sh`. |
 
 ## Contenu du dossier
 
 ```
 Kit-TV-Android/
-├── LANCER.bat              ← double-cliquez ici
+├── LANCER.bat              ← Windows : double-cliquez ici
+├── LANCER.command          ← macOS : double-cliquez ici
+├── LANCER.sh               ← Linux : ./LANCER.sh
 ├── README.md / README-en.md
 ├── CREDITS.md              ← auteurs et licences des photos
 ├── LICENSE                 ← licence MIT
 ├── docs/                 ← images du README
 ├── scripts/
-│   ├── kit.ps1             ← le programme (PowerShell)
+│   ├── kit.ps1             ← le programme (PowerShell, Windows)
+│   ├── kit.sh              ← le même programme (bash, macOS/Linux)
 │   └── listes/             ← ce qui est désactivé (modifiable)
 ├── ecran-accueil/
 │   ├── ZenHome.apk         ← l'écran d'accueil prêt à installer
