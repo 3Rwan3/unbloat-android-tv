@@ -109,17 +109,36 @@ Get_TvIdentity() {
 }
 
 Connect_Target() {
-    local target="$1" i st
+    local target="$1" i st out asked=0 refused=0 unreach=0
     case "$target" in *:*) ;; *) target="$target:5555" ;; esac
     T_="$target"
-    "$ADB" connect "$target" >/dev/null 2>&1
     i=0
     while [ $i -lt 60 ]; do
+        out="$("$ADB" connect "$target" 2>&1 | tr -d '\r' | tr '\n' ' ')"
         st="$("$ADB" -s "$target" get-state 2>&1 | tr -d '\r\n')"
         case "$st" in device*) return 0 ;; esac
-        [ $i -eq 1 ] && Say ">>> Regardez la TV : si « Autoriser le débogage ? » s'affiche, cochez « Toujours autoriser » puis OK." ">>> Look at the TV: if 'Allow debugging?' appears, tick 'Always allow' then OK." Cyan
+        # on distingue : TV joignable qui attend l'autorisation / TV qui refuse (débogage réseau inactif) / TV injoignable
+        case "$out $st" in
+            *unauthorized*|*authenticate*)
+                [ $asked = 0 ] && { Say ">>> Regardez la TV : « Autoriser le débogage ? » doit s'afficher. Cochez « Toujours autoriser » puis OK." ">>> Look at the TV: 'Allow debugging?' should appear. Tick 'Always allow' then OK." Cyan; asked=1; } ;;
+            *refused*|*10061*)
+                refused=$((refused + 1))
+                if [ $refused -ge 3 ]; then
+                    Err "La TV répond mais refuse la connexion : son débogage réseau n'est pas actif." "The TV answers but refuses the connection: its network debugging is not enabled."
+                    Say "   Dans les options pour les développeurs, activez « Débogage ADB réseau » (ou « ADB over network »). Sur Android 11 et plus, utilisez « Débogage sans fil » et le jumelage par code." "   In developer options, enable 'Network ADB debugging' (or 'ADB over network'). On Android 11 and later, use 'Wireless debugging' and pairing with a code." DarkGray
+                    return 1
+                fi ;;
+            *"timed out"*|*10060*|*nreachable*|*10065*|*"No route"*)
+                unreach=$((unreach + 1))
+                if [ $unreach -ge 2 ]; then
+                    Err "Aucun appareil ne répond à l'adresse $target." "No device answers at $target."
+                    Say "   Vérifiez l'adresse IP, que la TV est allumée (pas en veille) et sur le même réseau que l'ordinateur (pas un réseau invité). Un VPN sur l'ordinateur peut aussi bloquer." "   Check the IP address, that the TV is on (not in standby) and on the same network as the computer (not a guest network). A VPN on the computer can also block it." DarkGray
+                    return 1
+                fi ;;
+            *)
+                [ $i -eq 1 ] && [ $asked = 0 ] && { Say ">>> Regardez la TV : si « Autoriser le débogage ? » s'affiche, cochez « Toujours autoriser » puis OK." ">>> Look at the TV: if 'Allow debugging?' appears, tick 'Always allow' then OK." Cyan; asked=1; } ;;
+        esac
         sleep 2
-        "$ADB" connect "$target" >/dev/null 2>&1
         i=$((i + 1))
     done
     return 1

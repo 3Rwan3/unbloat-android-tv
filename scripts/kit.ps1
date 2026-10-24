@@ -73,13 +73,31 @@ function Get-TvIdentity {
 function Connect-Target([string]$target) {
     if ($target -notmatch ":") { $target = "$target`:5555" }
     $script:T_ = $target
-    & $adb connect $target | Out-Null
+    $asked = $false; $refused = 0; $unreach = 0
     for ($i = 0; $i -lt 60; $i++) {
+        $out = ((& $adb connect $target 2>&1) -join " ")
         $st = ((& $adb -s $target get-state 2>&1) -join "")
         if ($st -match "^device") { return $true }
-        if ($i -eq 1) { Say ">>> Regardez la TV : si « Autoriser le débogage ? » s'affiche, cochez « Toujours autoriser » puis OK." ">>> Look at the TV: if 'Allow debugging?' appears, tick 'Always allow' then OK." "Cyan" }
+        # on distingue : TV joignable qui attend l'autorisation / TV qui refuse (débogage réseau inactif) / TV injoignable
+        if ("$out $st" -match "unauthorized|authenticate") {
+            if (-not $asked) { Say ">>> Regardez la TV : « Autoriser le débogage ? » doit s'afficher. Cochez « Toujours autoriser » puis OK." ">>> Look at the TV: 'Allow debugging?' should appear. Tick 'Always allow' then OK." "Cyan"; $asked = $true }
+        }
+        elseif ($out -match "refused|10061") {
+            if (++$refused -ge 3) {
+                Err "La TV répond mais refuse la connexion : son débogage réseau n'est pas actif." "The TV answers but refuses the connection: its network debugging is not enabled."
+                Say "   Dans les options pour les développeurs, activez « Débogage ADB réseau » (ou « ADB over network »). Sur Android 11 et plus, utilisez « Débogage sans fil » et le jumelage par code." "   In developer options, enable 'Network ADB debugging' (or 'ADB over network'). On Android 11 and later, use 'Wireless debugging' and pairing with a code." "DarkGray"
+                return $false
+            }
+        }
+        elseif ($out -match "timed out|10060|unreachable|10065|No route") {
+            if (++$unreach -ge 2) {
+                Err "Aucun appareil ne répond à l'adresse $target." "No device answers at $target."
+                Say "   Vérifiez l'adresse IP, que la TV est allumée (pas en veille) et sur le même réseau que l'ordinateur (pas un réseau invité). Un VPN sur l'ordinateur peut aussi bloquer." "   Check the IP address, that the TV is on (not in standby) and on the same network as the computer (not a guest network). A VPN on the computer can also block it." "DarkGray"
+                return $false
+            }
+        }
+        elseif ($i -eq 1 -and -not $asked) { Say ">>> Regardez la TV : si « Autoriser le débogage ? » s'affiche, cochez « Toujours autoriser » puis OK." ">>> Look at the TV: if 'Allow debugging?' appears, tick 'Always allow' then OK." "Cyan"; $asked = $true }
         Start-Sleep 2
-        & $adb connect $target | Out-Null
     }
     return $false
 }
