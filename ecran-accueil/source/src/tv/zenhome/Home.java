@@ -312,8 +312,11 @@ public class Home extends Activity {
         if (usable("com.android.vending"))
             small.addView(smallTile(pkgIcon("com.android.vending"), "Play Store", new Runnable() { public void run() { launch("com.android.vending"); } }));
         final String[] input = findInput();
+        final ComponentName viewInputs = viewInputsTarget();
         if (input != null)
             small.addView(smallTile(pkgIcon(input[0]), t("Entrées TV", "TV inputs"), new Runnable() { public void run() { openInput(input); } }));
+        else if (viewInputs != null)   // projecteurs (XGIMI...) : pas d'appli TV connue, mais le système sait ouvrir les entrées
+            small.addView(smallTile(pkgIcon(viewInputs.getPackageName()), t("Entrées TV", "TV inputs"), new Runnable() { public void run() { openInputs(); } }));
         small.addView(smallTile(new GridIcon(), t("Toutes", "All apps"), new Runnable() { public void run() { showApps(null); } }));
         Drawable gear = pkgIcon("com.android.tv.settings");
         if (gear == null) gear = pkgIcon("com.android.settings");
@@ -858,9 +861,27 @@ public class Home extends Activity {
         launch(in[0]);
     }
 
+    /** Premier ecran du systeme qui gere l'action « voir les entrees » (null s'il n'y en a pas). */
+    ComponentName viewInputsTarget() {
+        try {
+            java.util.List<android.content.pm.ResolveInfo> l = getPackageManager().queryIntentActivities(
+                    new Intent("com.android.tv.action.VIEW_INPUTS"), 0);
+            if (l != null) for (android.content.pm.ResolveInfo ri : l) {
+                if (ri.activityInfo != null && ri.activityInfo.enabled)
+                    return new ComponentName(ri.activityInfo.packageName, ri.activityInfo.name);
+            }
+        } catch (Exception ignored) { }
+        return null;
+    }
+
     /** Menu des entrees du systeme s'il existe, sinon l'appli TV de la marque. */
     void openInputs() {
         Intent vi = new Intent("com.android.tv.action.VIEW_INPUTS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        ComponentName target = viewInputsTarget();
+        if (target != null) {
+            // on vise l'écran trouvé : sinon, quand plusieurs applis le gèrent (accueil Google + XGIMI), Android affiche un choix
+            try { startActivity(new Intent(vi).setComponent(target)); return; } catch (Exception ignored) { }
+        }
         if (vi.resolveActivity(getPackageManager()) != null) {
             try { startActivity(vi); return; } catch (Exception ignored) { }
         }
