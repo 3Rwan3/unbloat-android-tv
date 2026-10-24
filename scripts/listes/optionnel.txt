@@ -1,0 +1,83 @@
+﻿# =====================================================================
+#  FONCTIONS QUE VOUS UTILISEZ PEUT-ÊTRE   (FEATURES YOU MAY USE)
+#  Le kit pose UNE question par ligne. Répondez « n » pour désactiver.
+#  The kit asks ONE question per line. Answer "n" to disable.
+#  Seules les lignes présentes sur votre TV sont proposées.
+#  Only lines present on your TV are offered.
+#  Format : paquet[,paquet2...] | libellé FR | English label
+# =====================================================================
+
+# ---------------- Google / Android TV ----------------
+com.google.android.apps.mediashell             | Chromecast (caster depuis votre téléphone) | Chromecast (cast from your phone)
+com.google.android.katniss,com.google.android.tv.assistant | Recherche vocale / Assistant Google (bouton micro) | Voice search / Google Assistant (mic button)
+com.google.android.speech.pumpkin              | Dictée vocale et « Ok Google » | Voice dictation and "Ok Google"
+com.google.android.backdrop,com.google.android.apps.tv.dreamx | Mode Ambiant (économiseur d'écran Google) | Ambient mode (Google screensaver)
+com.google.android.tvrecommendations           | Recommandations de films sur l'accueil Google | Movie recommendations on the Google home screen
+com.google.android.videos                      | Google TV / Play Films (vos films achetés) | Google TV / Play Movies (your purchased films)
+com.google.android.music                       | Google Play Musique | Google Play Music
+com.google.android.youtube.tvmusic             | YouTube Music | YouTube Music
+com.google.android.play.games                  | Google Play Jeux | Google Play Games
+
+# ---------------- TCL ----------------
+com.tcl.waterfall.overseas,com.tcl.channelplus | TCL Channel (chaînes gratuites avec pubs) | TCL Channel (free channels with ads)
+com.tcl.MultiScreenInteraction_TV,com.tcl.miracast | Recopie d'écran / MagiConnect / T-Cast | Screen mirroring / MagiConnect / T-Cast
+com.tcl.ui_mediaCenter                         | Lecteur de clé USB TCL (Media Center) | TCL USB player (Media Center)
+com.tcl.smartalexa                             | Alexa sur la TV TCL | Alexa on the TCL TV
+com.tcl.assistant                              | Assistant vocal TCL | TCL voice assistant
+com.tcl.appmarket2                             | Boutique d'applis TCL | TCL app store
+com.tcl.usercenter                             | Compte TCL | TCL account
+
+# ---------------- Sony Bravia ----------------
+screnmirroring.com,com.sony.dtv.networkapp.wifidirect | Recopie d'écran Sony (Miracast / Wi-Fi Direct) | Sony screen mirroring (Miracast / Wi-Fi Direct)
+com.sony.dtv.airplayapp,com.sony.dtv.homekit   | AirPlay et HomeKit (iPhone, Mac) | AirPlay and HomeKit (iPhone, Mac)
+com.sony.dtv.seeds.iot,com.sony.dtv.smarthomesettings | Contrôle par Alexa / appli BRAVIA Connect | Alexa / BRAVIA Connect control
+com.sony.dtv.voicesearch,com.sony.dtv.assistantadapter | Recherche vocale Sony (bouton micro) | Sony voice search (mic button)
+com.sony.dtv.braviashow                        | Économiseur d'écran BRAVIA Show | BRAVIA Show screensaver
+com.sonypicturescore                           | BRAVIA CORE (films Sony inclus) | BRAVIA CORE (included Sony movies)
+com.sony.dtv.calibrationmonitor                | Calibrage d'image Calman | Calman picture calibration
+
+# ---------------- Philips ----------------
+org.droidtv.amazonalexa                        | Alexa sur la TV Philips | Alexa on the Philips TV
+org.droidtv.dlna                               | Partage de médias DLNA depuis le réseau | DLNA network media sharing
+org.droidtv.android.fitness                    | Appli Fitness Philips | Philips Fitness app
+com.phorus.playfi.tv,com.phorus.playfi.softap  | Audio multi-pièces DTS Play-Fi | DTS Play-Fi multi-room audio
+io.mimi.tvapp,io.mimi.sdk.service              | Personnalisation du son Mimi | Mimi sound personalization
+
+# ---------------- Xiaomi ----------------
+com.mitv.tvhome.mitvplus                       | Xiaomi TV+ (chaînes gratuites avec pubs) | Xiaomi TV+ (free channels with ads)
+com.mitv.milinkservice                         | Mi Cast (diffusion depuis un téléphone Xiaomi) | Mi Cast (casting from a Xiaomi phone)
+com.xiaomi.mitv.smartshare,com.xiaomi.wfdsinkhelperservice,com.xiaomi.miplay | Recopie d'écran Xiaomi (Miracast / MiPlay) | Xiaomi screen mirroring (Miracast / MiPlay)
+com.xiaomi.mimusic2                            | Mi Musique | Mi Music
+com.mitv.gallery                               | Galerie photos Xiaomi | Xiaomi photo gallery
+com.xiaomi.amazon.alexa                        | Alexa sur la TV Xiaomi | Alexa on the Xiaomi TV
+com.xiaomi.voicecontrol,com.xiaomi.wakeupservice | Assistant vocal Xiaomi (XiaoAI) | Xiaomi voice assistant (XiaoAI)
+com.xiaomi.smarthome.tv                        | Mi Home (maison connectée) | Mi Home (smart home)
+com.xiaomi.mitv.karaoke.service                | Karaoké Xiaomi | Xiaomi karaoke
+
+# ---------------- Hisense ----------------
+net.vidaatv.hisense.android.tv                 | Hisense / VIDAA Channels (chaînes gratuites) | Hisense / VIDAA Channels (free channels)
+com.hisense.alexa,com.vt.alexa                 | Alexa sur la TV Hisense | Alexa on the Hisense TV
+com.hisense.tv.hisremotenow,com.hisense.tv.hisremotenowserver | Télécommande sur téléphone RemoteNOW | RemoteNOW phone remote
+com.mediatek.androidbox                        | Partage d'écran (Miracast) | Screen sharing (Miracast)
+com.vt.hishow                                  | Family Moment (photos et économiseur) | Family Moment (photos and screensaver)
+com.hisense.tv.videochat.social,com.hisense.tv.videoconference | Appel vidéo Hisense | Hisense video calls
+
+# ---------------- Sharp / Toshiba / Thomson / Philco ----------------
+com.cltv.fast,com.apps.channels                | Chaînes gratuites du fabricant | Manufacturer free channels
+com.smartdevice.dtv.icast                      | Recopie d'écran iCast | iCast screen mirroring
+
+# ---------------- Nvidia Shield ----------------
+com.nvidia.tegrazone3                          | GeForce NOW / NVIDIA Games (jeu en streaming) | GeForce NOW / NVIDIA Games (cloud gaming)
+com.nvidia.nvgamecast                          | NVIDIA GameStream (service arrêté en 2023) | NVIDIA GameStream (discontinued in 2023)
+com.nvidia.osc,com.nvidia.ocs                  | Superposition Nvidia pendant les jeux | Nvidia in-game overlay
+
+# ---------------- Amazon Fire TV ----------------
+com.amazon.aca,com.amazon.alexa.datastore.app,com.amazon.alexadirectivebrokerservice,com.amazon.alexamediaplayer.runtime.ftv,com.amazon.alexa.externalmediaplayer.fireos,com.amazon.tv.alexaalerts,com.amazon.tv.alexanotifications,com.amazon.audiohome,com.amazon.rtcsessioncontroller,com.amazon.smarthomemapviewapp,com.amazon.wha.mediabrowserservice,com.amazon.spotify.mediabrowserservice,com.amazon.tv.matter | Alexa, commande vocale et maison connectée | Alexa, voice control and smart home
+com.amazon.bueller.photos                      | Amazon Photos | Amazon Photos
+com.amazon.bueller.music                       | Amazon Music | Amazon Music
+com.amazon.gamehub,com.amazon.recess           | Jeux Amazon | Amazon games
+com.amazon.tahoe                               | Amazon Kids / contrôle parental | Amazon Kids / parental controls
+com.amazon.imdb.tv.android.app                 | Freevee | Freevee
+com.amazon.cloud9                              | Navigateur Silk | Silk browser
+com.amazon.ftv.screensaver                     | Économiseur d'écran Amazon | Amazon screensaver
+com.amazon.tv.localgallery                     | Photos et vidéos depuis une clé USB | Photos and videos from a USB stick

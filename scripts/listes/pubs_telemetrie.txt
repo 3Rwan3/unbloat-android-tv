@@ -1,0 +1,120 @@
+﻿# =====================================================================
+#  PUBLICITÉS / TÉLÉMÉTRIE / SERVICES INUTILES   (ADS / TELEMETRY / BLOAT)
+#  Désactivés après UNE confirmation globale. Rien n'est désinstallé.
+#  Disabled after ONE overall confirmation. Nothing is uninstalled.
+#
+#  Format : paquet | description FR | English description
+#  Plusieurs paquets d'une même fonction : paquet1,paquet2 | ...
+#  Les paquets absents de la TV ou refusés par elle sont simplement ignorés.
+#  Packages missing from the TV or refused by it are simply skipped.
+#
+#  Sources (vérifiées en octobre 2026) : Universal Android Debloater NG,
+#  CleanYourTV (listes par modèle), shield_optimizer, dumbtv, guides et
+#  forums communautaires. Voir README > Avant d'utiliser le kit.
+# =====================================================================
+
+# ---------------- Google / Android TV (toutes marques / all brands) ----------------
+com.google.android.feedback                    | Envoi de rapports à Google | Feedback reports to Google
+com.google.android.tv.bugreportsender          | Envoi de rapports de bug | Bug report sender
+com.android.tv.feedbackconsent                 | Écran de consentement aux rapports | Feedback consent screen
+com.google.android.leanbacklauncher.recommendations | Recommandations (ancien accueil Android TV) | Recommendations (legacy Android TV home)
+com.google.android.onetimeinitializer          | Initialisation du premier démarrage (déjà faite) | First-boot initializer (already done)
+com.android.adservices.api                     | Services publicitaires Android (Android 13+) | Android ad services (Android 13+)
+com.android.ondevicepersonalization.services   | Personnalisation publicitaire (Android 13+) | On-device ad personalization (Android 13+)
+com.android.printspooler                       | Service d'impression (inutile sur TV) | Print service (useless on a TV)
+
+# ---------------- TCL (et Thomson fabriqué par TCL) ----------------
+com.tcl.bi                                     | Télémétrie TCL | TCL telemetry
+com.tcl.bootadservice                          | Pub au démarrage TCL | TCL boot ads
+com.tcl.messagebox                             | Messages et pubs TCL | TCL messages and ads
+com.tcl.logkit                                 | Collecte de journaux TCL | TCL log collection
+com.tcl.esticker                               | Étiquette de démo magasin | Store demo sticker
+com.tcl.showmode,com.tcl.exhibit               | Mode démo magasin | Store demo mode
+com.tcl.useragreement                          | Écran d'accord utilisateur TCL | TCL user agreement screen
+com.tcl.tvweishi                               | « Gardien » TCL (nettoyeur) | TCL "guardian" cleaner
+com.tcl.notereminder                           | Rappels TCL | TCL reminders
+com.tcl.copydatatotv                           | Copie de données vers la TV | Copy data to TV
+com.tcl.tv.tclhome_passive                     | Surcouche TCL Home en fond | TCL Home background overlay
+com.tcl.samba                                  | Partage réseau Samba TCL | TCL Samba network share
+
+# ---------------- Sony Bravia ----------------
+tv.samba.ssm,tv.samba.ssm.ui                   | Samba TV : analyse de ce que vous regardez (pub ciblée) | Samba TV: viewing analysis for ad targeting
+com.sony.dtv.promos                            | Promotions Sony | Sony promotions
+com.sony.dtv.sonyselect,com.sony.dtv.sonyselect.overlay | Sony Select (vitrine d'applis sponsorisées) | Sony Select (sponsored app showcase)
+com.sony.dtv.discovery,com.sony.dtv.bivlinfo   | Barre « Discover » de recommandations | "Discover" recommendation bar
+com.sony.dtv.sonyshelf                         | Rangée de recommandations Sony | Sony recommendation row
+com.sony.dtv.recommendationservice,com.sony.dtv.networkrecommendation,com.sony.dtv.watchtvrecommendation,com.sony.dtv.irbrecommendation,com.sony.dtv.woprecommendation | Services de recommandations Sony | Sony recommendation services
+com.sony.dtv.bravialifehack                    | Contenus promo BRAVIA Lifehack | BRAVIA Lifehack promo content
+com.sony.dtv.notificationcenter                | Notifications promo BRAVIA | BRAVIA promo notifications
+com.sony.dtv.sonytab                           | Onglet promo « Sony » sur l'accueil | Sony promo tab on the home screen
+com.sony.dtv.usercontext                       | Profilage du visionnage | Viewing profiling
+com.sony.dtv.demomode,com.sony.dtv.multiscreendemo,com.sony.dtv.demosupport,com.sony.dtv.demosystemsupport | Mode démo magasin Sony | Sony store demo mode
+com.sony.dtv.sonybugreportsys                  | Envoi de rapports de bug Sony | Sony bug report uploader
+com.sony.dtv.da.service                        | Agent d'assistance à distance Sony | Sony remote support agent
+com.sony.dtv.customersupport                   | Tuile Support client | Customer support tile
+com.sonyericsson.idd.agent                     | Collecte de données d'usage Sony | Sony usage data agent
+com.sony.snei.video.hhvu                       | Sony Video Unlimited (service arrêté) | Sony Video Unlimited (discontinued)
+
+# ---------------- Philips (TP Vision) ----------------
+org.droidtv.candeebug,org.droidtv.gel          | Analytique TP Vision (chaînes vues, envoi de données) | TP Vision analytics uploader
+org.droidtv.usagelogger                        | Journal d'usage (touches, démarrages) | Usage logger (keypresses, boots)
+org.droidtv.tv.frameworklogger                 | Journal des redémarrages | Reboot reason logger
+org.droidtv.nettvrecommender,org.droidtv.recommendation | Rangée promo « Top Picks » | "Top Picks" promo row
+org.droidtv.nettv.market,org.droidtv.nettvapps | Galerie d'applis Philips | Philips app gallery
+org.droidtv.nettvadvert                        | Publicité NetTV | NetTV advertising
+org.droidtv.sticker                            | Bannières de démo magasin | Store demo banners
+org.droidtv.oemtabprovider                     | Onglet promo « Philips » sur l'accueil | Philips promo tab on the home screen
+tv.inscape.tvclient.inscapeacr                 | Inscape : analyse de ce que vous regardez | Inscape: viewing analysis (ACR)
+
+# ---------------- Xiaomi (Mi TV, Mi Box, Xiaomi TV Box) ----------------
+com.miui.tv.analytics,com.miui.analytics       | Télémétrie Xiaomi | Xiaomi telemetry
+com.xiaomi.statistic                           | Statistiques d'usage Xiaomi | Xiaomi usage stats
+com.xm.webcontent                              | Promos web Xiaomi (et pubs d'économiseur) | Xiaomi web promos (and screensaver ads)
+com.mitv.tvhome.oemtab                         | Rangée publicitaire de l'accueil Xiaomi | Xiaomi home ad row
+com.mitv.tvhome.michannel                      | Rangées de contenus recommandés Mi Channel | Mi Channel recommendation rows
+com.xiaomi.floatingframe                       | Fenêtre promo flottante | Floating promo overlay
+com.mitv.cloudcontrol                          | Configuration à distance par Xiaomi | Xiaomi remote cloud control
+com.xiaomi.mitv.tvpush.tvpushservice           | Notifications et pubs poussées | Pushed notifications and ads
+com.xiaomi.tvqs                                | Rapports qualité / plantages | Quality and crash reports
+com.xiaomi.mitv.csi                            | Enquêtes de satisfaction | Satisfaction surveys
+com.miui.misightservice,com.xiaomi.mitv.debug  | Diagnostic et journaux à distance | Remote diagnostics and logs
+com.miui.systemAdSolution,com.xiaomi.mitv.advertise | Moteur publicitaire Xiaomi | Xiaomi ad engine
+tv.alphonso.alphonso_eula                      | Alphonso : analyse de ce que vous regardez | Alphonso: viewing analysis (ACR)
+co.sensara.tv.mitv                             | Guide TV sponsorisé Sensara | Sensara sponsored TV guide
+com.duokan.videodaily                          | Vidéos promo courtes | Short promo videos
+com.mitv.shoplugin,com.xiaomi.mitv.shop        | Boutique / shopping Xiaomi | Xiaomi shopping
+com.xiaomi.gamecenter.sdk.service.mibox        | Service centre de jeux Xiaomi | Xiaomi game center service
+
+# ---------------- Hisense (modèles Android TV / Google TV) ----------------
+com.hisense.storemode,com.vt.storemode,com.hisense.demonstrate | Mode démo magasin Hisense | Hisense store demo mode
+com.hisense.evservice,com.vt.tv.evservice      | Analyse de ce que vous regardez (ACR) | Viewing analysis (ACR)
+com.hisense.service.message                    | Messages poussés Hisense | Hisense push messages
+com.hisense.app.logreport,com.hisense.platformreport,com.hisense.logupload,com.hisense.hitv.das | Envoi de journaux et télémétrie Hisense | Hisense logs and telemetry
+com.vidaa.oemtabcontentprovider                | Contenus de l'onglet promo VIDAA | VIDAA promo tab content
+
+# ---------------- Sharp / Toshiba / Thomson / Philco (Android) et autres ----------------
+fusion.android.tv.demo                         | Mode démo magasin | Store demo mode
+tv.anoki.acr.anokiacroptin                     | Anoki : analyse de ce que vous regardez | Anoki: viewing analysis (ACR)
+com.vestel.vestelreporter                      | Télémétrie Vestel (Toshiba) | Vestel telemetry (Toshiba)
+com.smartdevice.recommendation                 | Rangées de recommandations (Skyworth) | Recommendation rows (Skyworth)
+com.smartdevice.aftersale,com.smartdevice.recordactivation | Services après-vente et activation (Skyworth) | After-sale and activation services (Skyworth)
+com.smartdevice.epopplayer,com.coocaa.demonow.lightining,com.realtek.retailmode,com.apps.esticker | Démo magasin | Store demo
+
+# ---------------- Nvidia Shield ----------------
+com.nvidia.stats                               | Télémétrie Nvidia | Nvidia telemetry
+com.nvidia.feedback                            | Rapports de plantage Nvidia | Nvidia crash reports
+com.nvidia.diagtools,com.nvidia.enhancedlogging,com.nvidia.shield.remotediagnostic | Diagnostic et journaux Nvidia | Nvidia diagnostics and logs
+com.nvidia.SHIELD.Platform.Analyser            | Analyseur de plateforme (télémétrie) | Platform analyser (telemetry)
+com.nvidia.factorybundling                     | Applis promo d'usine | Factory promo apps
+
+# ---------------- Amazon Fire TV / Fire Stick ----------------
+com.amazon.tv.acr                              | Analyse de ce que vous regardez (y compris HDMI) | Viewing analysis (incl. HDMI)
+com.amazon.hybridadidservice,com.amazon.privacypassservice | Identifiant et jetons publicitaires | Advertising ID and tokens
+com.amazon.sneakpeek                           | Bandes-annonces promo en lecture auto | Autoplay promo previews
+com.amazon.media.recommendations               | Lignes de contenus sponsorisés | Sponsored content rows
+com.amazon.shoptv.client,com.amazon.shoptv.firetv.client | Shopping Amazon sur la TV | Amazon shopping on the TV
+com.amazon.hedwig                              | Suivi du temps de visionnage | Watch time tracking
+com.amazon.wirelessmetrics.service,com.amazon.tv.fw.metrics,com.amazon.perfcollection,com.amazon.ceviche,com.amazon.spiderpork,com.amazon.connectivitydiag,com.amazon.katoch | Métriques et télémétrie Amazon | Amazon metrics and telemetry
+com.amazon.tv.democontent.provider,com.amazon.storm.lightning.tutorial,com.amazon.tv.releasenotes | Démo, tutoriel, notes de version | Demo, tutorial, release notes
+com.amazon.device.sale.service,com.amazon.systemnotices,com.amazon.tv.website_launcher | Notifications et pages promo | Promo notifications and pages
+com.amazon.ods.kindleconnect                   | Intégration Kindle | Kindle integration
