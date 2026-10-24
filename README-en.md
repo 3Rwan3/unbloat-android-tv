@@ -82,10 +82,21 @@ These figures come from a single TV. Your results will differ.
 |---|---|---|
 | **Android TV / Google TV** sets: TCL, Sony, Philips, Xiaomi, Hisense (Android models), Sharp, Toshiba… | ✅ | ✅ |
 | Boxes: Nvidia Shield, Chromecast with Google TV, Xiaomi Mi Box, Google TV Streamer | ✅ | ✅ |
-| **Amazon Fire TV / Fire Stick** | ✅ | ❌ Amazon blocks changing the home screen |
+| **Amazon Fire TV / Fire Stick** (Fire OS) | ✅ | ❌ Use a dedicated tool ([see below](#fire-tv--fire-stick-changing-the-home-screen)) |
+| Fire TV running **Vega OS** (Fire TV Stick 4K Select and models released since late 2025) | ❌ Not Android | ❌ |
 | Samsung (Tizen), LG (webOS), Hisense VIDAA, Roku, Apple TV | ❌ Not Android | ❌ |
 
 **Tested for real on:** a TCL running Android 9. The other devices in this table should work, since they use the same Android commands, but they have not all been tested.
+
+### Fire TV / Fire Stick: changing the home screen
+
+Amazon protects its home screen: without root, it can't be disabled or replaced the way the kit does on other TVs. Use the kit for **slimming** (options 1, 2 and 6), then one of these dedicated tools for the home screen. They redirect the Home button to the launcher of your choice through an accessibility service, without root, on Fire OS 7 and 8:
+
+- **[Projectivy Launcher](https://play.google.com/store/apps/details?id=com.spocky.projengmenu)**: a full launcher, with an "Override current launcher" option in its settings.
+- **[FireStick Fixer](https://github.com/Hornet34/firestick-fixer)** (open source) or **[Home on Fire](https://xdaforums.com/t/app-firetv-noroot-home-on-fire-use-any-launcher-as-your-fire-tv-home-home-button-boot-fire-os-8-7.4791567/)**: send the Home button to the launcher of your choice.
+- **[Launcher Manager](https://xdaforums.com/t/app-firetv-noroot-launcher-manager-change-launcher-without-root.4176349/)**: same idea, and can also remap the remote's app buttons.
+
+The Amazon home screen stays installed and may show up for a split second. After a Fire OS update, you sometimes need to re-enable the tool. Avoid the "system user" methods found on forums: they can leave the Fire TV stuck at boot.
 
 ### Brands covered by the slimming lists
 

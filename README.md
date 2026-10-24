@@ -82,10 +82,21 @@ Ces chiffres viennent d'une seule TV. Le gain sera différent sur la vôtre.
 |---|---|---|
 | TV **Android TV / Google TV** : TCL, Sony, Philips, Xiaomi, Hisense (modèles Android), Sharp, Toshiba… | ✅ | ✅ |
 | Boîtiers : Nvidia Shield, Chromecast avec Google TV, Xiaomi Mi Box, Google TV Streamer | ✅ | ✅ |
-| **Amazon Fire TV / Fire Stick** | ✅ | ❌ Amazon bloque le changement d'accueil |
+| **Amazon Fire TV / Fire Stick** (Fire OS) | ✅ | ❌ Utilisez un outil dédié ([voir ci-dessous](#fire-tv--fire-stick--changer-laccueil)) |
+| Fire TV sous **Vega OS** (Fire TV Stick 4K Select et modèles sortis depuis fin 2025) | ❌ Pas Android | ❌ |
 | Samsung (Tizen), LG (webOS), Hisense VIDAA, Roku, Apple TV | ❌ Pas Android | ❌ |
 
 **Testé en conditions réelles :** une TCL sous Android 9. Les autres appareils de ce tableau devraient fonctionner, car ils utilisent les mêmes commandes Android, mais ils n'ont pas tous été testés.
+
+### Fire TV / Fire Stick : changer l'accueil
+
+Amazon protège son écran d'accueil : sans root, impossible de le désactiver ou de le remplacer comme le fait le kit sur les autres TV. Utilisez le kit pour l'**allègement** (options 1, 2 et 6), puis l'un de ces outils dédiés pour l'accueil. Ils redirigent la touche Accueil vers le launcher de votre choix grâce à un service d'accessibilité, sans root, sur Fire OS 7 et 8 :
+
+- **[Projectivy Launcher](https://play.google.com/store/apps/details?id=com.spocky.projengmenu)** : un launcher complet, avec l'option « Remplacer le launcher actuel » dans ses réglages.
+- **[FireStick Fixer](https://github.com/Hornet34/firestick-fixer)** (libre) ou **[Home on Fire](https://xdaforums.com/t/app-firetv-noroot-home-on-fire-use-any-launcher-as-your-fire-tv-home-home-button-boot-fire-os-8-7.4791567/)** : envoient la touche Accueil vers le launcher de votre choix.
+- **[Launcher Manager](https://xdaforums.com/t/app-firetv-noroot-launcher-manager-change-launcher-without-root.4176349/)** : même principe, et permet aussi de reprogrammer les boutons d'applis de la télécommande.
+
+L'accueil Amazon reste installé et peut apparaître une fraction de seconde. Après une mise à jour de Fire OS, il faut parfois réactiver l'outil. Évitez les méthodes « system user » trouvées sur les forums : elles peuvent bloquer la Fire TV au démarrage.
 
 ### Marques couvertes par les listes d'allègement
 
