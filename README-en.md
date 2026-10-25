@@ -166,6 +166,7 @@ In **Settings → Network & Internet → (your Wi-Fi)**, or **About → Status**
 2. Pick a menu option. The first time, the kit asks for the TV's IP address.
 3. **Look at the TV**: an "Allow USB debugging?" prompt appears. Tick **"Always allow from this computer"**, then **OK**.
 4. The kit shows the brand and model it found. Check it's your TV before confirming.
+5. **Option 3:** while Zen Home installs, Google Play Protect may show a warning on the TV (app installed outside the Play Store). Choose **"Details"** then **"Install anyway"**.
 
 **Recommended order: 1, then 2, then 3.** The kit makes an automatic backup before the first change anyway.
 
@@ -227,6 +228,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | No "Allow debugging" prompt | Turn USB debugging off and on again, then restart the kit. Some TVs also need **Network ADB debugging**. |
 | Android 11 or newer TV with a "Wireless debugging" screen | Choose "Pair with code" on the TV. When the kit offers it, answer **yes** and type the IP:port and code shown. |
 | Long-pressing OK does nothing | Hold OK for at least half a second: Zen Home also recognises remotes that send a long press as a burst of short presses (Sony, for example). Otherwise, use the **Menu** (or ☰) key on the app. |
+| Zen Home "Install failed" | The TV probably showed a Google Play Protect warning that went unanswered. Run option 3 again and, on the TV, choose **"Details"** then **"Install anyway"**. |
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
 | The remote's Source button no longer works | On some TVs (especially Google TV), the original home screen handles this button. Run option 6 to re-enable it, then run option 3 again and answer **no** when the kit offers to disable it. |
 | Google TV logo looping after option 3 | A Google fallback screen took the home screen's place. Press Home and pick **Zen Home** then **Always**. Otherwise, run option 6 from the PC, restart the TV, then run option 3 again with the latest version of the kit. |

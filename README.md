@@ -166,6 +166,7 @@ Dans **Paramètres → Réseau et Internet → (votre Wi-Fi)**, ou **À propos �
 2. Choisissez une option du menu. La première fois, le kit demande l'adresse IP de la TV.
 3. **Regardez la TV** : la fenêtre « Autoriser le débogage USB ? » s'affiche. Cochez **« Toujours autoriser depuis cet ordinateur »**, puis **OK**.
 4. Le kit affiche la marque et le modèle trouvés. Vérifiez que c'est bien votre TV avant de confirmer.
+5. **Option 3 :** pendant l'installation de Zen Home, Google Play Protect peut afficher un avertissement sur la TV (appli installée hors du Play Store). Choisissez **« Détails »** puis **« Installer quand même »**.
 
 **Ordre conseillé : 1, puis 2, puis 3.** Le kit fait de toute façon une sauvegarde automatique avant la première modification.
 
@@ -227,6 +228,7 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | Pas de fenêtre « Autoriser le débogage » | Désactivez puis réactivez le Débogage USB, puis relancez le kit. Sur certaines TV, il faut aussi activer **Débogage ADB réseau**. |
 | TV en Android 11 ou plus récent, avec un écran « Débogage sans fil » | Choisissez « Associer avec un code » sur la TV. Quand le kit le propose, répondez **oui** et tapez l'IP:port et le code affichés. |
 | L'appui long sur OK ne fait rien | Maintenez OK au moins une demi-seconde : Zen Home reconnaît aussi les télécommandes qui envoient l'appui long comme une rafale d'appuis courts (Sony, par exemple). Sinon, utilisez la touche **Menu** (ou ☰) sur l'appli. |
+| « Échec de l'installation » de Zen Home | La TV a sans doute affiché un avertissement Google Play Protect resté sans réponse. Relancez l'option 3 et, sur la TV, choisissez **« Détails »** puis **« Installer quand même »**. |
 | Zen Home ne s'affiche pas avec le bouton Accueil | Appuyez sur Accueil : si un choix s'affiche, prenez **Zen Home** puis **Toujours**. Sinon, relancez l'option 3 et acceptez de désactiver l'accueil d'origine. |
 | La touche Source de la télécommande ne marche plus | Sur certaines TV (surtout Google TV), c'est l'accueil d'origine qui gère cette touche. Lancez l'option 6 pour le réactiver, puis refaites l'option 3 en répondant **non** quand le kit propose de le désactiver. |
 | Logo Google TV en boucle après l'option 3 | Un écran de secours de Google a pris la place de l'accueil. Appuyez sur Accueil et choisissez **Zen Home** puis **Toujours**. Sinon, lancez l'option 6 depuis le PC, redémarrez la TV, puis refaites l'option 3 avec la dernière version du kit. |

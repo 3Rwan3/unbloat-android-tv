@@ -414,8 +414,9 @@ function Do-Launcher {
     Say "   Vous pourrez tout changer ensuite directement sur la TV (appui long sur OK)." "   You can change everything later right on the TV (long-press OK)." "DarkGray"
 
     Say "Installation de Zen Home..." "Installing Zen Home..." "Cyan"
+    Say ">>> Regardez la TV : si Google Play Protect affiche un avertissement, choisissez « Détails » puis « Installer quand même »." ">>> Look at the TV: if Google Play Protect shows a warning, choose 'Details' then 'Install anyway'." "Cyan"
     $r = (A install -r $ApkPath) -join " "
-    if ($r -notmatch "Success") { Err "Échec de l'installation : $r" "Install failed: $r"; return }
+    if ($r -notmatch "Success") { Err "Échec de l'installation : $r" "Install failed: $r"; Say "   Si la TV a affiché un avertissement Play Protect, relancez l'option 3 et choisissez « Détails » puis « Installer quand même »." "   If the TV showed a Play Protect warning, run option 3 again and choose 'Details' then 'Install anyway'." "DarkGray"; return }
     Ok "Installé" "Installed"
     Sh "settings put global zenhome_title_mode $titleMode" | Out-Null
     if ($titleMode -eq "custom") { Sh ("settings put global zenhome_title_b64 " + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($title))) | Out-Null }
