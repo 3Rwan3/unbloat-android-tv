@@ -264,7 +264,8 @@ $Protected = @("android","com.android.systemui","com.android.settings","com.andr
     "com.google.android.gms","com.google.android.gsf","com.android.providers.settings","com.android.providers.tv",
     "com.google.android.webview","com.android.webview","com.android.bluetooth","com.android.phone","com.android.shell",
     "com.android.packageinstaller","com.google.android.packageinstaller","com.android.inputdevices","com.android.externalstorage",
-    "com.android.providers.media","com.android.providers.downloads","com.google.android.inputmethod.latin",$ZenPkg)
+    "com.android.providers.media","com.android.providers.downloads","com.google.android.inputmethod.latin",$ZenPkg,
+    "com.google.android.tv.remote.service","com.google.android.permissioncontroller","com.android.permissioncontroller","mitv.service")
 
 function Disable-Packages([string[]]$pkgs, [string]$why) {
     $st = Get-State
@@ -356,7 +357,7 @@ function Test-KeyServiceOn {
     $cur = ((Sh "settings get secure enabled_accessibility_services") -join "").Trim()
     return (($cur -split ":") -contains $KeySvc)
 }
-function Enable-KeyService {
+function Enable-KeyService([switch]$Quiet) {
     $brand = "$($script:Info.Brand) $($script:Info.Manufacturer)"
     if ($brand -match "TCL") { Sh "settings delete global zenhome_keymap" | Out-Null }
     elseif ($brand -match "Xiaomi") { Sh "settings put global zenhome_keymap 190:com.google.android.youtube.tv" | Out-Null }
@@ -370,7 +371,9 @@ function Enable-KeyService {
     Start-Sleep 1
     Sh "settings put secure enabled_accessibility_services $cur" | Out-Null
     Sh "settings put secure accessibility_enabled 1" | Out-Null
-    Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps."
+    # TCL : la protection « Safety Guard » peut empêcher le service de démarrer sans cette autorisation
+    if ($brand -match "TCL") { foreach ($op in "APP_AUTO_START", "AUTO_START") { Sh "appops set $ZenPkg $op allow" | Out-Null }; Sh "appops write-settings" | Out-Null }
+    if (-not $Quiet) { Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps." }
 }
 # am force-stop retire aussi KeyService des services d'accessibilité actifs : on le remet s'il l'était.
 # Android ne le relance qu'une fois Zen Home rouvert, d'où le retour à l'accueil avant.
@@ -381,7 +384,7 @@ function Restart-Zen {
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     foreach ($i in 1..3) {
         Start-Sleep 3
-        Enable-KeyService | Out-Null
+        Enable-KeyService -Quiet
         Start-Sleep 2
         if (((Sh "dumpsys accessibility") -join "`n") -match "Bound services:\{Service") { return }
     }
@@ -443,13 +446,19 @@ function Disable-OrigHome([string]$origPkg) {
             $wraithKept = $true
         } else { $toOff += $GtvFallback }
     }
+    # setupwraith AVANT l'accueil d'origine : dans l'autre ordre, son écran de secours prend l'accueil
+    # et le système peut planter en boucle (voire réinitialiser la TV si on la redémarre à ce moment-là)
+    if ($toOff -contains $GtvFallback) {
+        if ($script:Info.Model -match "Chromecast") { Warn "Chromecast avec Google TV : désactiver l'écran de secours Google peut empêcher de caster (« appareil non fiable »). L'option 6 remet tout." "Chromecast with Google TV: disabling the Google fallback screen can stop casting from working ('untrusted device'). Option 6 puts everything back." }
+        $toOff = @($GtvFallback) + @($toOff | Where-Object { $_ -ne $GtvFallback })
+    }
     Disable-Packages $toOff "launcher"
     $st = Get-State; $st.launcher_disabled = $origPkg; Save-State $st
     Sh "cmd package set-home-activity $ZenPkg/.Home" | Out-Null
     Set-HomeRole $ZenPkg
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 5
-    if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; return $true }
+    if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; Say "   Attendez une quinzaine de secondes avant d'éteindre ou de redémarrer la TV : Android enregistre ces changements avec un léger délai." "   Wait about fifteen seconds before turning off or restarting the TV: Android saves these changes with a short delay." "DarkGray"; return $true }
     # d'autres écrans d'accueil (second launcher Google ou du fabricant) peuvent encore passer avant Zen Home
     $extra = @(Get-HomeCandidates | Where-Object { $_.Pkg -ne $ZenPkg -and $_.Prio -ge 0 -and $Protected -notcontains $_.Pkg -and $toOff -notcontains $_.Pkg -and -not ($wraithKept -and $_.Pkg -eq $GtvFallback) } | ForEach-Object { $_.Pkg } | Select-Object -Unique)
     if ($extra.Count -gt 0) {
@@ -461,13 +470,14 @@ function Disable-OrigHome([string]$origPkg) {
             Set-HomeRole $ZenPkg
             Sh "input keyevent KEYCODE_HOME" | Out-Null
             Start-Sleep 5
-            if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; return $true }
+            if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; Say "   Attendez une quinzaine de secondes avant d'éteindre ou de redémarrer la TV : Android enregistre ces changements avec un léger délai." "   Wait about fifteen seconds before turning off or restarting the TV: Android saves these changes with a short delay." "DarkGray"; return $true }
         }
     }
     $picked = Get-Home; if (-not $picked) { $picked = T "aucun, ou fenêtre de choix" "none, or a chooser" }
     Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
     Say "   Accueil retenu par la TV : $picked" "   Home screen picked by the TV: $picked" "DarkGray"
-    foreach ($q in $toOff) { Sh "pm enable $q" | Out-Null }
+    # retour arrière dans l'ordre inverse : l'accueil d'origine revient avant l'écran de secours
+    for ($i = $toOff.Count - 1; $i -ge 0; $i--) { Sh "pm enable $($toOff[$i])" | Out-Null }
     $st = Get-State; $st.disabled = @($st.disabled | Where-Object { $toOff -notcontains $_ }); $st.launcher_disabled = $null; Save-State $st
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     if ($wraithKept) { Say "   L'écran de secours Google a pris la place de l'accueil. Reconnectez le Wi-Fi comme indiqué ci-dessus, puis relancez l'option 3." "   The Google fallback screen took the home screen's place. Reconnect the Wi-Fi as explained above, then run option 3 again." "DarkGray" }
@@ -534,6 +544,8 @@ function Do-Launcher {
 
     $setOk = ((Sh "cmd package set-home-activity $ZenPkg/.Home") -join " ")
     Set-HomeRole $ZenPkg
+    # la réinstallation efface les réglages d'accessibilité : si l'accueil d'origine était déjà coupé, on remet le service des boutons
+    if ($st.launcher_disabled) { Enable-KeyService -Quiet }
     Restart-Zen
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 6
@@ -627,7 +639,7 @@ function Do-Restore {
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 6
     Capture-TV "apres_restauration" | Out-Null
-    Ok "Restauration terminée. Redémarrez la TV pour finir proprement." "Restore done. Restart the TV to finish cleanly."
+    Ok "Restauration terminée. Attendez une quinzaine de secondes, puis redémarrez la TV pour finir proprement." "Restore done. Wait about fifteen seconds, then restart the TV to finish cleanly."
 }
 
 # ---------------------------------------------------------------- menu

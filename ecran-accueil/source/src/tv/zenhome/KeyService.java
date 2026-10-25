@@ -59,6 +59,38 @@ public class KeyService extends AccessibilityService {
         return i;
     }
 
+    /**
+     * Ecran eteint : on arrete de filtrer les touches, sinon certaines TV ne se rallument plus
+     * avec le bouton Marche de la telecommande. Le filtrage reprend a l'allumage de l'ecran.
+     */
+    final android.content.BroadcastReceiver screen = new android.content.BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) { setKeyFilter(Intent.ACTION_SCREEN_ON.equals(i.getAction())); }
+    };
+
+    void setKeyFilter(boolean on) {
+        try {
+            android.accessibilityservice.AccessibilityServiceInfo info = getServiceInfo();
+            if (info == null) return;
+            int f = android.accessibilityservice.AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS;
+            info.flags = on ? (info.flags | f) : (info.flags & ~f);
+            setServiceInfo(info);
+        } catch (Throwable ignored) { }
+    }
+
+    @Override
+    protected void onServiceConnected() {
+        super.onServiceConnected();
+        android.content.IntentFilter fl = new android.content.IntentFilter(Intent.ACTION_SCREEN_OFF);
+        fl.addAction(Intent.ACTION_SCREEN_ON);
+        try { registerReceiver(screen, fl); } catch (Throwable ignored) { }
+    }
+
+    @Override
+    public void onDestroy() {
+        try { unregisterReceiver(screen); } catch (Throwable ignored) { }
+        super.onDestroy();
+    }
+
     @Override
     protected boolean onKeyEvent(KeyEvent e) {
         if (e.getAction() == KeyEvent.ACTION_DOWN && e.getRepeatCount() == 0 && keyLog(this))

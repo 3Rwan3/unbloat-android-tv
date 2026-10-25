@@ -12,7 +12,7 @@ com.google.android.apps.mediashell             | Chromecast (caster depuis votre
 com.google.android.katniss,com.google.android.tv.assistant | Recherche vocale / Assistant Google (bouton micro) | Voice search / Google Assistant (mic button)
 com.google.android.speech.pumpkin              | Dictée vocale et « Ok Google » | Voice dictation and "Ok Google"
 com.google.android.backdrop,com.google.android.apps.tv.dreamx | Mode Ambiant (économiseur d'écran Google) | Ambient mode (Google screensaver)
-com.google.android.tvrecommendations           | Recommandations de films sur l'accueil Google | Movie recommendations on the Google home screen
+com.google.android.tvrecommendations           | Recommandations de films sur l'accueil Google (nécessaire à l'appli télécommande NVIDIA sur Shield) | Movie recommendations on the Google home screen (needed by the NVIDIA remote app on Shield)
 com.google.android.videos                      | Google TV / Play Films (vos films achetés) | Google TV / Play Movies (your purchased films)
 com.google.android.music                       | Google Play Musique | Google Play Music
 com.google.android.youtube.tvmusic             | YouTube Music | YouTube Music

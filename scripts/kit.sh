@@ -350,7 +350,8 @@ PROTECTED="android com.android.systemui com.android.settings com.android.tv.sett
 com.google.android.gms com.google.android.gsf com.android.providers.settings com.android.providers.tv
 com.google.android.webview com.android.webview com.android.bluetooth com.android.phone com.android.shell
 com.android.packageinstaller com.google.android.packageinstaller com.android.inputdevices com.android.externalstorage
-com.android.providers.media com.android.providers.downloads com.google.android.inputmethod.latin $ZEN_PKG"
+com.android.providers.media com.android.providers.downloads com.google.android.inputmethod.latin $ZEN_PKG
+com.google.android.tv.remote.service com.google.android.permissioncontroller com.android.permissioncontroller mitv.service"
 PROTECTED="$(printf '%s' "$PROTECTED" | tr ' ' '\n')"
 
 Disable_Packages() {
@@ -473,6 +474,10 @@ Enable_KeyService() {
     sleep 1
     Sh "settings put secure enabled_accessibility_services $cur" >/dev/null
     Sh "settings put secure accessibility_enabled 1" >/dev/null
+    # TCL : la protection « Safety Guard » peut empêcher le service de démarrer sans cette autorisation
+    case "$INFO_Brand $INFO_Manufacturer" in *TCL*|*tcl*|*Tcl*)
+        Sh "appops set $ZEN_PKG APP_AUTO_START allow" >/dev/null; Sh "appops set $ZEN_PKG AUTO_START allow" >/dev/null; Sh "appops write-settings" >/dev/null ;;
+    esac
     Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps."
 }
 # am force-stop retire aussi KeyService des services d'accessibilité actifs : on le remet s'il l'était.
@@ -544,13 +549,19 @@ Disable_OrigHome() {
             wraithKept=1
         else toOff="$toOff $GTV_FALLBACK"; fi
     fi
+    # setupwraith AVANT l'accueil d'origine : dans l'autre ordre, son écran de secours prend l'accueil
+    # et le système peut planter en boucle (voire réinitialiser la TV si on la redémarre à ce moment-là)
+    case " $toOff " in *" $GTV_FALLBACK "*)
+        case "$INFO_Model" in *Chromecast*) Warn "Chromecast avec Google TV : désactiver l'écran de secours Google peut empêcher de caster (« appareil non fiable »). L'option 6 remet tout." "Chromecast with Google TV: disabling the Google fallback screen can stop casting from working ('untrusted device'). Option 6 puts everything back." ;; esac
+        toOff="$GTV_FALLBACK $(printf '%s\n' $toOff | grep -vxF -- "$GTV_FALLBACK" | tr '\n' ' ')" ;;
+    esac
     Disable_Packages launcher $toOff
     Get_State; ST_LAUNCHER_DISABLED="$orig"; Save_State
     Sh "cmd package set-home-activity $ZEN_PKG/.Home" >/dev/null
     Set_HomeRole "$ZEN_PKG"
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 5
-    case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; return 0 ;; esac
+    case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; Say "   Attendez une quinzaine de secondes avant d'éteindre ou de redémarrer la TV : Android enregistre ces changements avec un léger délai." "   Wait about fifteen seconds before turning off or restarting the TV: Android saves these changes with a short delay." DarkGray; return 0 ;; esac
     # d'autres écrans d'accueil (second launcher Google ou du fabricant) peuvent encore passer avant Zen Home
     extra=""
     while read -r q; do
@@ -572,13 +583,14 @@ EOF
             Set_HomeRole "$ZEN_PKG"
             Sh "input keyevent KEYCODE_HOME" >/dev/null
             sleep 5
-            case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; return 0 ;; esac
+            case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; Say "   Attendez une quinzaine de secondes avant d'éteindre ou de redémarrer la TV : Android enregistre ces changements avec un léger délai." "   Wait about fifteen seconds before turning off or restarting the TV: Android saves these changes with a short delay." DarkGray; return 0 ;; esac
         fi
     fi
     picked="$(Get_Home)"; [ -z "$picked" ] && picked="$(T "aucun, ou fenêtre de choix" "none, or a chooser")"
     Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
     Say "   Accueil retenu par la TV : $picked" "   Home screen picked by the TV: $picked" DarkGray
-    for q in $toOff; do Sh "pm enable $q" >/dev/null; done
+    # retour arrière dans l'ordre inverse : l'accueil d'origine revient avant l'écran de secours
+    for q in $(printf '%s\n' $toOff | awk '{ l[NR] = $0 } END { for (i = NR; i > 0; i--) print l[i] }'); do Sh "pm enable $q" >/dev/null; done
     Get_State
     for q in $toOff; do ST_DISABLED="$(printf '%s\n' "$ST_DISABLED" | grep -vxF -- "$q")"; done
     ST_LAUNCHER_DISABLED=""; Save_State
@@ -655,6 +667,8 @@ Do_Launcher() {
 
     Sh "cmd package set-home-activity $ZEN_PKG/.Home" >/dev/null
     Set_HomeRole "$ZEN_PKG"
+    # la réinstallation efface les réglages d'accessibilité : si l'accueil d'origine était déjà coupé, on remet le service des boutons
+    [ -n "$ST_LAUNCHER_DISABLED" ] && Enable_KeyService >/dev/null
     Restart_Zen
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 6
@@ -756,7 +770,7 @@ Do_Restore() {
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 6
     Capture_TV "apres_restauration"
-    Ok "Restauration terminée. Redémarrez la TV pour finir proprement." "Restore done. Restart the TV to finish cleanly."
+    Ok "Restauration terminée. Attendez une quinzaine de secondes, puis redémarrez la TV pour finir proprement." "Restore done. Wait about fifteen seconds, then restart the TV to finish cleanly."
 }
 
 Run_Choice() {
