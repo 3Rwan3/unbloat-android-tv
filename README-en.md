@@ -87,7 +87,7 @@ These figures come from a single TV. Your results will differ.
 | Fire TV running **Vega OS** (Fire TV Stick 4K Select and models released since late 2025) | ❌ Not Android | ❌ |
 | Samsung (Tizen), LG (webOS), Hisense VIDAA, Roku, Apple TV | ❌ Not Android | ❌ |
 
-**Tested for real on:** a TCL BeyondTV (Android 9). Also tested by users: a TCL BeyondTV2 (Android 9) and an XGIMI MoGo 3 Pro projector (Google TV, Android 11). The other devices in this table should work, since they use the same Android commands, but they have not all been tested.
+**Tested for real on:** a TCL BeyondTV (Android 9). Also tested by users: a TCL BeyondTV2 (Android 9), an XGIMI MoGo 3 Pro projector (Google TV, Android 11) and a Xiaomi MiTV-MOOR2 (Google TV, Android 11). The other devices in this table should work, since they use the same Android commands, but they have not all been tested.
 
 ### Fire TV / Fire Stick: changing the home screen
 
@@ -235,7 +235,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | Long-pressing OK does nothing | Use the **"✎ Edit home screen"** button above the dock (Up arrow from the dock): it works with every remote. Zen Home also recognises remotes that send a long press as a burst of short presses (Sony, for example). |
 | Zen Home "Install failed" | The TV probably showed a Google Play Protect warning that went unanswered. Run option 3 again and, on the TV, choose **"Details"** then **"Install anyway"**. |
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
-| The remote's Netflix, YouTube or Prime Video buttons no longer work | On Google TV, the original home screen handles these buttons. On **TCL** sets, option 3 reconnects them automatically through a small Zen Home accessibility service that only intercepts those three keys (option 6 removes it). On other brands, run option 6, then run option 3 again and answer **no** when the kit offers to disable the original home screen. |
+| The remote's Netflix, YouTube or Prime Video buttons no longer work | On Google TV, the original home screen handles these buttons. On **TCL** and **Xiaomi** sets, option 3 reconnects them automatically through a small Zen Home accessibility service that only intercepts those keys (option 6 removes it). On Xiaomi, Netflix and Prime Video stay handled by the TV: only YouTube is reconnected. On other brands, run option 6, then run option 3 again and answer **no** when the kit offers to disable the original home screen. |
 | The remote's Source button no longer works | On some TVs (especially Google TV), the original home screen handles this button. Run option 6 to re-enable it, then run option 3 again and answer **no** when the kit offers to disable it. |
 | The kit says the Wi-Fi belongs to the Google fallback screen | The network was saved during the TV's first setup: disabling that screen would delete it and cut the connection. On the TV, **Settings → Network**, pick your Wi-Fi, **"Forget"**, reconnect, then run option 3 again. |
 | Google TV logo looping after option 3 | A Google fallback screen took the home screen's place. Press Home and pick **Zen Home** then **Always**. Otherwise, run option 6 from the PC, restart the TV, then run option 3 again with the latest version of the kit. |
@@ -265,7 +265,7 @@ Kit-TV-Android/
 │   └── listes/             ← what gets disabled (editable)
 ├── ecran-accueil/
 │   ├── ZenHome.apk         ← the ready-to-install home screen
-│   └── source/             ← Java source code + build script
+│   └── source/             ← Java source code + build scripts (build.sh Linux, build-mac.sh macOS)
 ├── mes_photos/             ← your photos for Zen Home (option 4)
 ├── outils/                 ← ADB, downloaded automatically
 └── sauvegardes/            ← created automatically: one backup per TV

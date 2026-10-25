@@ -348,19 +348,44 @@ function Set-HomeRole([string]$pkg) {
     if ([int]("0" + $script:Info.Sdk) -ge 29) { Sh "cmd role add-role-holder android.app.role.HOME $pkg" | Out-Null }
 }
 
-# TCL : les boutons Netflix / YouTube / Prime Video de la télécommande ne marchent qu'avec l'accueil Google TV.
+# TCL, Xiaomi : les boutons Netflix / YouTube / Prime Video de la télécommande ne marchent qu'avec l'accueil Google TV.
 # Quand il est désactivé, le service d'accessibilité de Zen Home (KeyService) prend le relais pour ces seules touches.
+# Xiaomi (MiTV-MOOR2, Google TV) : Netflix (193) et Prime Video (194) restent gérés par le système, seul YouTube (190) est perdu.
 $KeySvc = "tv.zenhome/tv.zenhome.KeyService"
+function Test-KeyServiceOn {
+    $cur = ((Sh "settings get secure enabled_accessibility_services") -join "").Trim()
+    return (($cur -split ":") -contains $KeySvc)
+}
 function Enable-KeyService {
-    if ("$($script:Info.Brand) $($script:Info.Manufacturer)" -notmatch "TCL") { return }
+    $brand = "$($script:Info.Brand) $($script:Info.Manufacturer)"
+    if ($brand -match "TCL") { Sh "settings delete global zenhome_keymap" | Out-Null }
+    elseif ($brand -match "Xiaomi") { Sh "settings put global zenhome_keymap 190:com.google.android.youtube.tv" | Out-Null }
+    else { return }
     $cur = ((Sh "settings get secure enabled_accessibility_services") -join "").Trim()
     if (-not $cur -or $cur -eq "null") { $cur = "" }
-    if (($cur -split ":") -notcontains $KeySvc) {
-        $new = if ($cur) { "$($cur):$KeySvc" } else { $KeySvc }
-        Sh "settings put secure enabled_accessibility_services $new" | Out-Null
-    }
+    if (($cur -split ":") -notcontains $KeySvc) { $cur = if ($cur) { "$($cur):$KeySvc" } else { $KeySvc } }
+    # couper puis remettre l'accessibilité : sinon Android ne relance pas toujours le service
+    Sh "settings put secure accessibility_enabled 0" | Out-Null
+    Sh "settings delete secure enabled_accessibility_services" | Out-Null
+    Start-Sleep 1
+    Sh "settings put secure enabled_accessibility_services $cur" | Out-Null
     Sh "settings put secure accessibility_enabled 1" | Out-Null
     Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps."
+}
+# am force-stop retire aussi KeyService des services d'accessibilité actifs : on le remet s'il l'était.
+# Android ne le relance qu'une fois Zen Home rouvert, d'où le retour à l'accueil avant.
+function Restart-Zen {
+    $had = Test-KeyServiceOn
+    Sh "am force-stop $ZenPkg" | Out-Null
+    if (-not $had) { return }
+    Sh "input keyevent KEYCODE_HOME" | Out-Null
+    foreach ($i in 1..3) {
+        Start-Sleep 3
+        Enable-KeyService | Out-Null
+        Start-Sleep 2
+        if (((Sh "dumpsys accessibility") -join "`n") -match "Bound services:\{Service") { return }
+    }
+    Warn "Boutons de la télécommande : relancez l'option 3 si YouTube ne s'ouvre plus." "Remote buttons: run option 3 again if YouTube no longer opens."
 }
 function Disable-KeyService {
     $cur = ((Sh "settings get secure enabled_accessibility_services") -join "").Trim()
@@ -467,7 +492,7 @@ function Do-Launcher {
 
     $setOk = ((Sh "cmd package set-home-activity $ZenPkg/.Home") -join " ")
     Set-HomeRole $ZenPkg
-    Sh "am force-stop $ZenPkg" | Out-Null
+    Restart-Zen
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 6
     $now = Get-Home
@@ -510,7 +535,7 @@ function Do-Photos {
     if ($files.Count -eq 0) {
         Warn "Aucune photo dedans. Copiez-y des .jpg (paysage, 1920×1080 idéalement) puis revenez ici." "No photos in it. Copy .jpg files there (landscape, ideally 1920×1080) then come back."
         if (YesNo "Revenir aux photos fournies avec Zen Home ?" "Go back to the photos bundled with Zen Home?" $false) {
-            Sh "rm -rf /sdcard/ZenHome" | Out-Null; Sh "am force-stop $ZenPkg" | Out-Null; Sh "input keyevent KEYCODE_HOME" | Out-Null
+            Sh "rm -rf /sdcard/ZenHome" | Out-Null; Restart-Zen; Sh "input keyevent KEYCODE_HOME" | Out-Null
             Ok "Photos d'origine rétablies." "Bundled photos restored."
         }
         Start-Process explorer.exe $PhotosDir
@@ -521,13 +546,13 @@ function Do-Photos {
     Sh "mkdir -p /sdcard/ZenHome" | Out-Null
     foreach ($f in $files) { A push $f.FullName "/sdcard/ZenHome/$($f.Name)" | Out-Null; Write-Host "   → $($f.Name)" }
     Sh "pm grant $ZenPkg android.permission.READ_EXTERNAL_STORAGE" | Out-Null
-    Sh "am force-stop $ZenPkg" | Out-Null
+    Restart-Zen
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 5
     Capture-TV "photos_perso" | Out-Null
     Ok "Photos envoyées. Elles remplacent celles fournies." "Photos sent. They replace the bundled ones."
     $iv = Ask "Secondes entre deux photos (Entrée = 60)" "Seconds between photos (Enter = 60)"
-    if ($iv -match "^\d+$") { Sh "settings put global zenhome_interval $iv" | Out-Null; Sh "am force-stop $ZenPkg" | Out-Null; Sh "input keyevent KEYCODE_HOME" | Out-Null }
+    if ($iv -match "^\d+$") { Sh "settings put global zenhome_interval $iv" | Out-Null; Restart-Zen; Sh "input keyevent KEYCODE_HOME" | Out-Null }
 }
 
 # ---------------------------------------------------------------- 6. restauration
@@ -552,7 +577,7 @@ function Do-Restore {
     $zen = @(Get-Packages "") -contains $ZenPkg
     if ($zen) {
         if (YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" $true) { A uninstall $ZenPkg | Out-Null; Ok "Zen Home désinstallé" "Zen Home uninstalled" }
-        foreach ($k in "zenhome_title_b64","zenhome_title_mode","zenhome_layout","zenhome_dock","zenhome_rev","zenhome_interval") { Sh "settings delete global $k" | Out-Null }
+        foreach ($k in "zenhome_title_b64","zenhome_title_mode","zenhome_layout","zenhome_dock","zenhome_rev","zenhome_interval","zenhome_keymap","zenhome_keylog") { Sh "settings delete global $k" | Out-Null }
         Sh "rm -rf /sdcard/ZenHome" | Out-Null
     }
     $st.disabled = @(); $st.launcher_disabled = $null
