@@ -215,6 +215,26 @@ In **All apps**, long-pressing an app also lets you **add it to the dock**.
 
 These settings are saved on the TV. If you run the kit's option 3 again later, the choices made in the kit take over.
 
+### Themes
+
+In **"✎ Edit home screen"**, choose **Theme**:
+
+| Theme | Layout |
+|---|---|
+| **Classic** (default) | Time top right, glass dock at the bottom. |
+| **Minimal** | Large clock in the middle of the screen, floating dock without a background. |
+| **Studio** | Everything aligned left, magazine style: title at the top, time and widgets above the dock. |
+| **Cinema** | Like Classic, but the dock and title fade away after a few seconds without touching the remote. The first key brings them back. |
+
+### Widgets
+
+In **"✎ Edit home screen"**, choose **Widgets**:
+
+- **Weather**: icon, current temperature, today's low and high. Set your city with **"City"** (TV keyboard).
+- **Sunrise and sunset**: below the weather.
+
+The weather updates every 30 minutes, only while the home screen is shown. Only the city name is sent, with no account and no tracking. Weather data: [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0).
+
 ## Safety and undo
 
 - **Identity lock.** The kit records your TV's serial number. Before every action, it checks that the device at that address is the same one. Another TV, a box or a Fire Stick that gets that IP will never be modified.

@@ -100,6 +100,14 @@ public class Home extends Activity {
     ImageView wallA, wallB;
     boolean aOnTop = true, released = false;
     TextView clock, date, titleView, hintView, editBtn;
+    View topGrad, botGrad;
+    LinearLayout infoBlock, weatherRow, sunRow;      // heure + date + widgets, place selon le theme
+    ImageView wxIcon, sunUpIcon, sunDownIcon;
+    TextView wxTemp, wxRange, sunUpText, sunDownText;
+    GradientDrawable dockGlass;
+    String theme = "classic";                        // classic | centered | studio | cinema
+    boolean uiHidden = false, wakeSwallow = false;   // theme Cinema : interface effacee apres un moment
+    volatile boolean wxBusy = false;
     List<String> walls = new ArrayList<>();
     boolean wallsFromFiles = false;
     int wallIdx = 0;
@@ -152,12 +160,12 @@ public class Home extends Activity {
         wallLayer.addView(wallB); wallLayer.addView(wallA);
         root.addView(wallLayer, new FrameLayout.LayoutParams(-1, -1));
 
-        View top = new View(this);
-        top.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{0x8C000000, 0x00000000}));
-        root.addView(top, new FrameLayout.LayoutParams(-1, dp(200), Gravity.TOP));
-        View bot = new View(this);
-        bot.setBackground(new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{0x99000000, 0x00000000}));
-        root.addView(bot, new FrameLayout.LayoutParams(-1, dp(340), Gravity.BOTTOM));
+        topGrad = new View(this);
+        topGrad.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{0x8C000000, 0x00000000}));
+        root.addView(topGrad, new FrameLayout.LayoutParams(-1, dp(200), Gravity.TOP));
+        botGrad = new View(this);
+        botGrad.setBackground(new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{0x99000000, 0x00000000}));
+        root.addView(botGrad, new FrameLayout.LayoutParams(-1, dp(340), Gravity.BOTTOM));
 
         // Titre
         titleView = text("", 26, fMed, 0xFFFFFFFF);
@@ -169,16 +177,32 @@ public class Home extends Activity {
         root.addView(titleView, lpT);
         applyTitle();
 
-        // Horloge + date
-        LinearLayout cl = new LinearLayout(this);
-        cl.setOrientation(LinearLayout.VERTICAL);
-        cl.setGravity(Gravity.END);
+        // Horloge + date + widgets (meteo, lever et coucher du soleil) : un seul bloc, place selon le theme
+        infoBlock = new LinearLayout(this);
+        infoBlock.setOrientation(LinearLayout.VERTICAL);
         clock = text("", 40, fLight, 0xFFFFFFFF);
         date = text("", 15, fReg, 0xE6FFFFFF);
-        cl.addView(clock); cl.addView(date);
-        FrameLayout.LayoutParams lpC = new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END);
-        lpC.setMargins(0, dp(26), dp(56), 0);
-        root.addView(cl, lpC);
+        infoBlock.addView(clock); infoBlock.addView(date);
+        weatherRow = new LinearLayout(this);
+        weatherRow.setOrientation(LinearLayout.HORIZONTAL);
+        weatherRow.setGravity(Gravity.CENTER_VERTICAL);
+        wxIcon = new ImageView(this);
+        wxTemp = text("", 22, fLight, 0xFFFFFFFF);
+        wxRange = text("", 13, fReg, 0xB3FFFFFF);
+        weatherRow.addView(wxIcon); weatherRow.addView(wxTemp); weatherRow.addView(wxRange);
+        weatherRow.setVisibility(View.GONE);
+        infoBlock.addView(weatherRow);
+        sunRow = new LinearLayout(this);
+        sunRow.setOrientation(LinearLayout.HORIZONTAL);
+        sunRow.setGravity(Gravity.CENTER_VERTICAL);
+        sunUpIcon = new ImageView(this); sunUpIcon.setImageDrawable(new WxIcon(WxIcon.RISE));
+        sunDownIcon = new ImageView(this); sunDownIcon.setImageDrawable(new WxIcon(WxIcon.SET));
+        sunUpText = text("", 13, fReg, 0xCCFFFFFF);
+        sunDownText = text("", 13, fReg, 0xCCFFFFFF);
+        sunRow.addView(sunUpIcon); sunRow.addView(sunUpText); sunRow.addView(sunDownIcon); sunRow.addView(sunDownText);
+        sunRow.setVisibility(View.GONE);
+        infoBlock.addView(sunRow);
+        root.addView(infoBlock, new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.END));
 
         // Indication pendant le deplacement
         hintView = text("", 13, fMed, 0xFFFFFFFF);
@@ -195,11 +219,11 @@ public class Home extends Activity {
         dock.setOrientation(LinearLayout.HORIZONTAL);
         dock.setGravity(Gravity.CENTER_VERTICAL);
         dock.setClipChildren(false); dock.setClipToPadding(false);
-        GradientDrawable glass = new GradientDrawable();
-        glass.setCornerRadius(dp(28));
-        glass.setColor(0x38FFFFFF);
-        glass.setStroke(Math.max(1, dp(0.75f)), 0x40FFFFFF);
-        dock.setBackground(glass);
+        dockGlass = new GradientDrawable();
+        dockGlass.setCornerRadius(dp(28));
+        dockGlass.setColor(0x38FFFFFF);
+        dockGlass.setStroke(Math.max(1, dp(0.75f)), 0x40FFFFFF);
+        dock.setBackground(dockGlass);
         FrameLayout.LayoutParams lpD = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
         lpD.setMargins(0, 0, 0, dp(46));
         root.addView(dock, lpD);
@@ -227,6 +251,7 @@ public class Home extends Activity {
         setContentView(root);
         loadWalls();
         showWall(true);
+        renderWeather();
     }
 
     // =====================================================================
@@ -251,6 +276,7 @@ public class Home extends Activity {
             }
             e.apply();
         }
+        theme = prefs.getString("theme", "classic");
         titleMode = prefs.getString("title_mode", "device");
         titleText = prefs.getString("title", "");
         try { layout = Integer.parseInt(prefs.getString("layout", "4")); } catch (Exception ex) { layout = 4; }
@@ -345,14 +371,9 @@ public class Home extends Activity {
             catch (Exception e) { toast(t("Réglages indisponibles", "Settings unavailable")); } } }));
         dock.addView(small);
 
-        // repositionne l'indication au-dessus du dock
-        FrameLayout.LayoutParams lpH = (FrameLayout.LayoutParams) hintView.getLayoutParams();
-        if (lpH != null) { lpH.bottomMargin = dp(layoutHint()); hintView.setLayoutParams(lpH); }
-        if (editBtn != null) {
-            FrameLayout.LayoutParams lpE = (FrameLayout.LayoutParams) editBtn.getLayoutParams();
-            if (lpE != null) { lpE.bottomMargin = dp(layoutHint()); editBtn.setLayoutParams(lpE); }
-            editBtn.setVisibility(moveIndex < 0 && !editMode ? View.VISIBLE : View.GONE);
-        }
+        // place l'indication, le bouton « Modifier », l'heure et les widgets selon le theme et la taille du dock
+        applyTheme();
+        if (editBtn != null) editBtn.setVisibility(moveIndex < 0 && !editMode ? View.VISIBLE : View.GONE);
 
         final View target = (focusIndex >= 0 && focusIndex < bigTiles.size()) ? bigTiles.get(focusIndex)
                 : (bigTiles.isEmpty() ? (big.getChildCount() > 0 ? big.getChildAt(0) : small.getChildAt(0)) : bigTiles.get(bigTiles.size() - 1));
@@ -519,6 +540,8 @@ public class Home extends Activity {
         }
         if (dockPkgs.size() < layout) { labels.add(t("Ajouter une appli", "Add an app")); actions.add(new Runnable() { public void run() { pickAppToAdd(); } }); }
         labels.add(t("Disposition : ", "Layout: ") + layout + t(" applis", " apps")); actions.add(new Runnable() { public void run() { showLayoutMenu(); } });
+        labels.add(t("Thème : ", "Theme: ") + themeName(theme)); actions.add(new Runnable() { public void run() { showThemeMenu(); } });
+        labels.add(t("Widgets", "Widgets")); actions.add(new Runnable() { public void run() { showWidgetsMenu(); } });
         labels.add(t("Modifier le titre", "Change the title")); actions.add(new Runnable() { public void run() { editTitle(); } });
         showMenu(header, labels, actions);
     }
@@ -627,6 +650,17 @@ public class Home extends Activity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
         int kc = e.getKeyCode();
+        // theme Cinema : la premiere touche ne fait que reveiller l'interface
+        if (uiHidden) {
+            if (e.getAction() == KeyEvent.ACTION_DOWN) { setUiVisible(true); wakeSwallow = true; }
+            scheduleHide();
+            return true;
+        }
+        if (wakeSwallow) {
+            if (e.getAction() == KeyEvent.ACTION_UP) wakeSwallow = false;
+            return true;
+        }
+        scheduleHide();
         // appui long sur OK, aussi pour les telecommandes qui envoient la touche en repetition
         if (isOk(kc) && moveIndex < 0) {
             long t = e.getEventTime();
@@ -733,7 +767,8 @@ public class Home extends Activity {
             panel.addView(row, lp);
             if (first == null) first = row;
         }
-        FrameLayout.LayoutParams lpp = new FrameLayout.LayoutParams(dp(360), -2, Gravity.CENTER);
+        int longest = 0; for (String l : labels) longest = Math.max(longest, l.length());
+        FrameLayout.LayoutParams lpp = new FrameLayout.LayoutParams(dp(longest > 34 ? 520 : 360), -2, Gravity.CENTER);
         ov.addView(panel, lpp);
         openOverlay(ov, first);
     }
@@ -902,7 +937,306 @@ public class Home extends Activity {
         if (moveIndex >= 0) endMove();
         while (!overlays.isEmpty()) closeOverlay(overlays.get(overlays.size() - 1), false);
         if (editMode) endEdit();
+        setUiVisible(true);
+        scheduleHide();
         focusDock();
+    }
+
+    // =====================================================================
+    // Themes : meme contenu, disposition differente. Choisis depuis « Modifier l'accueil » > Theme.
+    static final String[] THEMES = {"classic", "centered", "studio", "cinema"};
+
+    String themeName(String id) {
+        if ("centered".equals(id)) return t("Épuré", "Minimal");
+        if ("studio".equals(id)) return "Studio";
+        if ("cinema".equals(id)) return t("Cinéma", "Cinema");
+        return t("Classique", "Classic");
+    }
+
+    String themeDesc(String id) {
+        if ("centered".equals(id)) return t("grande horloge au centre, dock flottant", "large centred clock, floating dock");
+        if ("studio".equals(id)) return t("tout aligné à gauche, façon magazine", "everything aligned left, magazine style");
+        if ("cinema".equals(id)) return t("l'interface s'efface pour laisser la photo", "the interface fades away to leave the photo");
+        return t("heure en haut à droite, dock en bas", "time top right, dock at the bottom");
+    }
+
+    void size(TextView v, float s) { v.setTextSize(TypedValue.COMPLEX_UNIT_PX, s * density); }
+
+    void iconSize(ImageView v, float s, float gapRight) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(s), dp(s));
+        lp.setMargins(0, 0, dp(gapRight), 0);
+        v.setLayoutParams(lp);
+    }
+
+    /** Place le titre, l'heure, les widgets, le dock et les degrades selon le theme. */
+    void applyTheme() {
+        if (infoBlock == null) return;
+        boolean centered = "centered".equals(theme), studio = "studio".equals(theme);
+        int hGrav = studio ? Gravity.START : Gravity.CENTER_HORIZONTAL;
+
+        FrameLayout.LayoutParams lt = (FrameLayout.LayoutParams) titleView.getLayoutParams();
+        if (centered) { lt.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL; lt.setMargins(0, dp(34), 0, 0); size(titleView, 17); }
+        else { lt.gravity = Gravity.TOP | Gravity.START; lt.setMargins(dp(56), dp(38), 0, 0); size(titleView, studio ? 30 : 26); }
+        titleView.setLayoutParams(lt);
+
+        FrameLayout.LayoutParams li = (FrameLayout.LayoutParams) infoBlock.getLayoutParams();
+        int align;
+        float clockS, dateS, tempS, smallS, iconS;
+        if (centered) {
+            li.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL; li.setMargins(0, dp(92), 0, 0);
+            align = Gravity.CENTER_HORIZONTAL; clockS = 116; dateS = 19; tempS = 26; smallS = 15; iconS = 30;
+        } else if (studio) {
+            li.gravity = Gravity.BOTTOM | Gravity.START; li.setMargins(dp(60), 0, 0, dp(layoutHint() + 44));
+            align = Gravity.START; clockS = 76; dateS = 18; tempS = 24; smallS = 14; iconS = 28;
+        } else {
+            li.gravity = Gravity.TOP | Gravity.END; li.setMargins(0, dp(26), dp(56), 0);
+            align = Gravity.END; clockS = 40; dateS = 15; tempS = 20; smallS = 13; iconS = 22;
+        }
+        infoBlock.setLayoutParams(li);
+        infoBlock.setGravity(align);
+        weatherRow.setGravity(align | Gravity.CENTER_VERTICAL);
+        sunRow.setGravity(align | Gravity.CENTER_VERTICAL);
+        size(clock, clockS); size(date, dateS);
+        clock.setTypeface(fLight);
+        size(wxTemp, tempS); size(wxRange, smallS); size(sunUpText, smallS); size(sunDownText, smallS);
+        iconSize(wxIcon, iconS, 8);
+        iconSize(sunUpIcon, iconS * 0.8f, 5);
+        iconSize(sunDownIcon, iconS * 0.8f, 5);
+        sunUpText.setPadding(0, 0, dp(16), 0);
+        wxRange.setPadding(dp(10), 0, 0, 0);
+        LinearLayout.LayoutParams lw = new LinearLayout.LayoutParams(-2, -2); lw.setMargins(0, dp(centered ? 14 : 10), 0, 0);
+        weatherRow.setLayoutParams(lw);
+        LinearLayout.LayoutParams ls = new LinearLayout.LayoutParams(-2, -2); ls.setMargins(0, dp(6), 0, 0);
+        sunRow.setLayoutParams(ls);
+
+        FrameLayout.LayoutParams ld = (FrameLayout.LayoutParams) dock.getLayoutParams();
+        ld.gravity = Gravity.BOTTOM | hGrav;
+        ld.setMargins(studio ? dp(46) : 0, 0, 0, dp(46));
+        dock.setLayoutParams(ld);
+        dock.setBackground(centered ? null : dockGlass);
+
+        for (View v : new View[]{hintView, editBtn}) {
+            if (v == null) continue;
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) v.getLayoutParams();
+            lp.gravity = Gravity.BOTTOM | hGrav;
+            lp.setMargins(studio ? dp(58) : 0, 0, 0, dp(layoutHint()));
+            v.setLayoutParams(lp);
+        }
+
+        FrameLayout.LayoutParams lg = (FrameLayout.LayoutParams) topGrad.getLayoutParams();
+        lg.height = dp(centered ? 440 : 200); topGrad.setLayoutParams(lg);
+        FrameLayout.LayoutParams lb = (FrameLayout.LayoutParams) botGrad.getLayoutParams();
+        lb.height = dp(studio ? 600 : 340); botGrad.setLayoutParams(lb);
+
+        if (!"cinema".equals(theme)) { h.removeCallbacks(hideUiRun); setUiVisible(true); }
+    }
+
+    void showThemeMenu() {
+        List<String> labels = new ArrayList<>();
+        List<Runnable> actions = new ArrayList<>();
+        for (final String id : THEMES) {
+            labels.add((id.equals(theme) ? "✓  " : "     ") + themeName(id) + "  ·  " + themeDesc(id));
+            actions.add(new Runnable() { public void run() {
+                theme = id;
+                prefs.edit().putString("theme", id).apply();
+                buildDock(0);
+                scheduleHide();
+            } });
+        }
+        showMenu(t("Thème", "Theme"), labels, actions);
+    }
+
+    // ---------- Theme Cinema : l'interface s'efface apres un moment sans toucher la telecommande
+    static final long CINEMA_IDLE_MS = 12_000L;
+
+    final Runnable hideUiRun = new Runnable() { public void run() {
+        if (!"cinema".equals(theme)) return;
+        if (!overlays.isEmpty() || moveIndex >= 0 || editMode) { scheduleHide(); return; }
+        setUiVisible(false);
+    } };
+
+    void scheduleHide() {
+        h.removeCallbacks(hideUiRun);
+        if ("cinema".equals(theme)) h.postDelayed(hideUiRun, CINEMA_IDLE_MS);
+    }
+
+    void setUiVisible(boolean visible) {
+        if (dock == null) return;
+        if (visible == !uiHidden && dock.getAlpha() == (visible ? 1f : 0f)) return;
+        uiHidden = !visible;
+        float a = visible ? 1f : 0f;
+        for (View v : new View[]{dock, titleView, editBtn, botGrad, hintView}) {
+            if (v == null) continue;
+            v.animate().cancel();
+            v.animate().alpha(a).setDuration(visible ? 260 : 1200).start();
+        }
+    }
+
+    // =====================================================================
+    // Widgets : meteo et lever / coucher du soleil (donnees Open-Meteo, sans compte ni cle)
+    void showWidgetsMenu() {
+        final boolean wOn = prefs.getBoolean("w_weather", false);
+        final boolean sOn = prefs.getBoolean("w_sun", false);
+        String city = prefs.getString("city_label", null);
+        List<String> labels = new ArrayList<>();
+        List<Runnable> actions = new ArrayList<>();
+        labels.add((wOn ? "✓  " : "     ") + t("Météo", "Weather") + (city != null ? "  ·  " + city : ""));
+        actions.add(new Runnable() { public void run() {
+            if (!wOn && !prefs.contains("city_lat")) { editCity(); return; }
+            prefs.edit().putBoolean("w_weather", !wOn).apply();
+            renderWeather(); refreshWeather(true); showWidgetsMenu();
+        } });
+        labels.add("     " + t("Ville : ", "City: ") + (city != null ? city : t("à choisir", "not set")));
+        actions.add(new Runnable() { public void run() { editCity(); } });
+        labels.add((sOn ? "✓  " : "     ") + t("Lever et coucher du soleil", "Sunrise and sunset"));
+        actions.add(new Runnable() { public void run() {
+            prefs.edit().putBoolean("w_sun", !sOn).apply();
+            if (!sOn && !prefs.getBoolean("w_weather", false)) {
+                if (!prefs.contains("city_lat")) { editCity(); return; }
+                prefs.edit().putBoolean("w_weather", true).apply();
+            }
+            renderWeather(); refreshWeather(true); showWidgetsMenu();
+        } });
+        showMenu(t("Widgets", "Widgets"), labels, actions);
+    }
+
+    void editCity() {
+        final EditText et = new EditText(this);
+        et.setSingleLine(true);
+        et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        String cur = prefs.getString("city_name", "");
+        et.setText(cur);
+        et.setHint(t("ex. Lyon", "e.g. London"));
+        et.setSelection(et.getText().length());
+        FrameLayout box = new FrameLayout(this);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(et);
+        new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+                .setTitle(t("Ville de la météo", "Weather city"))
+                .setMessage(t("Tapez le nom de votre ville.", "Type the name of your city."))
+                .setView(box)
+                .setPositiveButton(t("Valider", "Save"), new android.content.DialogInterface.OnClickListener() {
+                    public void onClick(android.content.DialogInterface d, int w) {
+                        String c = et.getText().toString().trim();
+                        if (c.length() > 0) findCity(c);
+                    } })
+                .setNegativeButton(t("Annuler", "Cancel"), null)
+                .setOnDismissListener(new android.content.DialogInterface.OnDismissListener() {
+                    public void onDismiss(android.content.DialogInterface d) { focusDock(); } })
+                .show();
+    }
+
+    /** Cherche la ville (geocodage Open-Meteo), puis active la meteo. */
+    void findCity(final String name) {
+        toast(t("Recherche de « ", "Looking up \"") + name + t(" »…", "\"…"));
+        new Thread(new Runnable() { public void run() {
+            String found = null, label = null;
+            double lat = 0, lon = 0;
+            try {
+                String body = httpGet("https://geocoding-api.open-meteo.com/v1/search?count=1&format=json&language="
+                        + (fr ? "fr" : "en") + "&name=" + java.net.URLEncoder.encode(name, "UTF-8"));
+                org.json.JSONArray r = new org.json.JSONObject(body).optJSONArray("results");
+                if (r != null && r.length() > 0) {
+                    org.json.JSONObject o = r.getJSONObject(0);
+                    lat = o.getDouble("latitude"); lon = o.getDouble("longitude");
+                    found = o.optString("name", name);
+                    String country = o.optString("country", "");
+                    label = country.length() > 0 ? found + ", " + country : found;
+                }
+            } catch (Throwable ignored) { }
+            final String fName = found, fLabel = label;
+            final double fLat = lat, fLon = lon;
+            runOnUiThread(new Runnable() { public void run() {
+                if (fName == null) { toast(t("Ville introuvable, ou pas de connexion Internet.", "City not found, or no Internet connection.")); return; }
+                prefs.edit().putString("city_name", fName).putString("city_label", fLabel)
+                        .putString("city_lat", String.valueOf(fLat)).putString("city_lon", String.valueOf(fLon))
+                        .putBoolean("w_weather", true).remove("wx_json").remove("wx_time").apply();
+                toast(t("Météo : ", "Weather: ") + fLabel);
+                renderWeather();
+                refreshWeather(true);
+            } });
+        } }).start();
+    }
+
+    static String httpGet(String u) throws Exception {
+        java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL(u).openConnection();
+        c.setConnectTimeout(8000); c.setReadTimeout(8000);
+        c.setRequestProperty("User-Agent", "ZenHome (Android TV)");
+        try {
+            if (c.getResponseCode() != 200) throw new Exception("HTTP " + c.getResponseCode());
+            java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(c.getInputStream(), "UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) sb.append(line);
+            br.close();
+            return sb.toString();
+        } finally { c.disconnect(); }
+    }
+
+    boolean fahrenheit() { return "US".equals(Locale.getDefault().getCountry()); }
+
+    /** Met a jour la meteo en arriere-plan (au plus toutes les 30 minutes, seulement quand l'accueil est affiche). */
+    void refreshWeather(boolean force) {
+        if (!prefs.getBoolean("w_weather", false) || !prefs.contains("city_lat") || wxBusy) return;
+        long age = System.currentTimeMillis() - prefs.getLong("wx_time", 0);
+        if (!force && age < 30 * 60_000L) return;
+        wxBusy = true;
+        final String url = "https://api.open-meteo.com/v1/forecast?latitude=" + prefs.getString("city_lat", "0")
+                + "&longitude=" + prefs.getString("city_lon", "0")
+                + "&current=temperature_2m,weather_code,is_day"
+                + "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset"
+                + "&timezone=auto&forecast_days=1" + (fahrenheit() ? "&temperature_unit=fahrenheit" : "");
+        new Thread(new Runnable() { public void run() {
+            String body = null;
+            try { body = httpGet(url); if (!body.contains("\"current\"")) body = null; } catch (Throwable ignored) { }
+            final String fBody = body;
+            runOnUiThread(new Runnable() { public void run() {
+                wxBusy = false;
+                if (fBody != null) prefs.edit().putString("wx_json", fBody).putLong("wx_time", System.currentTimeMillis()).apply();
+                renderWeather();
+            } });
+        } }).start();
+    }
+
+    /** Affiche la derniere meteo connue (rien si elle a plus de 6 heures ou si le widget est coupe). */
+    void renderWeather() {
+        if (weatherRow == null) return;
+        boolean wOn = prefs.getBoolean("w_weather", false), sOn = prefs.getBoolean("w_sun", false);
+        String js = prefs.getString("wx_json", null);
+        boolean fresh = System.currentTimeMillis() - prefs.getLong("wx_time", 0) < 6 * 3600_000L;
+        boolean ok = false;
+        if (wOn && js != null && fresh) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject(js);
+                org.json.JSONObject cur = o.getJSONObject("current");
+                org.json.JSONObject day = o.getJSONObject("daily");
+                int temp = (int) Math.round(cur.getDouble("temperature_2m"));
+                int code = cur.optInt("weather_code", 0);
+                boolean isDay = cur.optInt("is_day", 1) == 1;
+                int max = (int) Math.round(day.getJSONArray("temperature_2m_max").getDouble(0));
+                int min = (int) Math.round(day.getJSONArray("temperature_2m_min").getDouble(0));
+                wxIcon.setImageDrawable(new WxIcon(WxIcon.forCode(code, isDay)));
+                wxTemp.setText(temp + "°");
+                wxRange.setText(min + "° / " + max + "°");
+                sunUpText.setText(shortTime(day.getJSONArray("sunrise").getString(0)));
+                sunDownText.setText(shortTime(day.getJSONArray("sunset").getString(0)));
+                ok = true;
+            } catch (Throwable ignored) { }
+        }
+        weatherRow.setVisibility(ok ? View.VISIBLE : View.GONE);
+        sunRow.setVisibility(ok && sOn ? View.VISIBLE : View.GONE);
+    }
+
+    /** « 2026-10-25T08:12 » -> « 08:12 » ou « 8:12 AM » selon le reglage de la TV. */
+    String shortTime(String iso) {
+        int i = iso.indexOf('T');
+        String hm = i >= 0 ? iso.substring(i + 1) : iso;
+        if (hm.length() > 5) hm = hm.substring(0, 5);
+        if (DateFormat.is24HourFormat(this)) return hm;
+        try {
+            int hh = Integer.parseInt(hm.substring(0, 2)), mm = Integer.parseInt(hm.substring(3, 5));
+            return ((hh + 11) % 12 + 1) + ":" + (mm < 10 ? "0" : "") + mm + (hh < 12 ? " AM" : " PM");
+        } catch (Exception e) { return hm; }
     }
 
     // =====================================================================
@@ -1077,6 +1411,7 @@ public class Home extends Activity {
             Locale loc = Locale.getDefault();
             String d = new SimpleDateFormat(fr ? "EEEE d MMMM" : "EEEE, MMMM d", loc).format(n);
             date.setText(d.substring(0, 1).toUpperCase(loc) + d.substring(1));
+            refreshWeather(false);
             h.postDelayed(this, 15_000);
         }
     };
@@ -1092,6 +1427,10 @@ public class Home extends Activity {
         h.removeCallbacksAndMessages(null);
         h.post(tick);
         h.postDelayed(rotate, rotationMs);
+        setUiVisible(true);
+        scheduleHide();
+        renderWeather();
+        refreshWeather(false);
     }
 
     @Override
@@ -1116,6 +1455,146 @@ public class Home extends Activity {
     protected void onStart() {
         super.onStart();
         if (released) { released = false; loadWalls(); showWall(true); }
+    }
+
+    /** Icones meteo dessinees au trait (style pictogrammes Apple), lisibles sur n'importe quelle photo. */
+    static class WxIcon extends Drawable {
+        static final int CLEAR = 0, CLEAR_N = 1, PARTLY = 2, PARTLY_N = 3, CLOUD = 4, FOG = 5,
+                DRIZZLE = 6, RAIN = 7, SNOW = 8, STORM = 9, RISE = 10, SET = 11;
+        final int type;
+        final android.graphics.Paint st = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        final android.graphics.Paint fi = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+
+        WxIcon(int type) {
+            this.type = type;
+            st.setStyle(android.graphics.Paint.Style.STROKE); st.setColor(0xFFFFFFFF);
+            st.setStrokeCap(android.graphics.Paint.Cap.ROUND); st.setStrokeJoin(android.graphics.Paint.Join.ROUND);
+            st.setStrokeWidth(1.7f);
+            st.setShadowLayer(1.2f, 0, 0.4f, 0x66000000);
+            fi.setStyle(android.graphics.Paint.Style.FILL); fi.setColor(0xFFFFFFFF);
+            fi.setShadowLayer(1.2f, 0, 0.4f, 0x66000000);
+        }
+
+        /** Codes meteo WMO (Open-Meteo) -> icone. */
+        static int forCode(int c, boolean day) {
+            if (c == 0) return day ? CLEAR : CLEAR_N;
+            if (c == 1 || c == 2) return day ? PARTLY : PARTLY_N;
+            if (c == 3) return CLOUD;
+            if (c == 45 || c == 48) return FOG;
+            if (c >= 51 && c <= 57) return DRIZZLE;
+            if ((c >= 61 && c <= 67) || (c >= 80 && c <= 82)) return RAIN;
+            if ((c >= 71 && c <= 77) || c == 85 || c == 86) return SNOW;
+            if (c >= 95) return STORM;
+            return CLOUD;
+        }
+
+        static android.graphics.Path cloud(float dx, float dy) {
+            android.graphics.Path a = new android.graphics.Path();
+            a.addCircle(8.5f + dx, 13.5f + dy, 3.8f, android.graphics.Path.Direction.CW);
+            android.graphics.Path b = new android.graphics.Path();
+            b.addCircle(13.5f + dx, 11f + dy, 5f, android.graphics.Path.Direction.CW);
+            android.graphics.Path c = new android.graphics.Path();
+            c.addCircle(18f + dx, 14f + dy, 3.3f, android.graphics.Path.Direction.CW);
+            android.graphics.Path r = new android.graphics.Path();
+            r.addRoundRect(new android.graphics.RectF(4.7f + dx, 13.5f + dy, 21.3f + dx, 17.3f + dy), 1.9f, 1.9f, android.graphics.Path.Direction.CW);
+            a.op(b, android.graphics.Path.Op.UNION);
+            a.op(c, android.graphics.Path.Op.UNION);
+            a.op(r, android.graphics.Path.Op.UNION);
+            return a;
+        }
+
+        void sun(android.graphics.Canvas k, float cx, float cy, float r, float rays) {
+            k.drawCircle(cx, cy, r, st);
+            for (int i = 0; i < 8; i++) {
+                double an = Math.PI / 4 * i;
+                float c = (float) Math.cos(an), s = (float) Math.sin(an);
+                k.drawLine(cx + c * (r + 2f), cy + s * (r + 2f), cx + c * (r + 2f + rays), cy + s * (r + 2f + rays), st);
+            }
+        }
+
+        void moon(android.graphics.Canvas k, float cx, float cy, float r) {
+            android.graphics.Path m = new android.graphics.Path();
+            m.addCircle(cx, cy, r, android.graphics.Path.Direction.CW);
+            android.graphics.Path cut = new android.graphics.Path();
+            cut.addCircle(cx + r * 0.62f, cy - r * 0.42f, r * 0.86f, android.graphics.Path.Direction.CW);
+            m.op(cut, android.graphics.Path.Op.DIFFERENCE);
+            k.drawPath(m, st);
+        }
+
+        /** Dessine un element en arriere-plan, masque la ou le nuage passe devant. */
+        void behindCloud(android.graphics.Canvas k, android.graphics.Path cl, Runnable draw) {
+            k.save();
+            k.clipPath(cl, android.graphics.Region.Op.DIFFERENCE);   // autorise tant que targetSdk < 28
+            draw.run();
+            k.restore();
+        }
+
+        @Override public void draw(final android.graphics.Canvas k) {
+            android.graphics.Rect b = getBounds();
+            float w = Math.min(b.width(), b.height());
+            if (w <= 0) return;
+            k.save();
+            k.translate(b.left + (b.width() - w) / 2f, b.top + (b.height() - w) / 2f);
+            k.scale(w / 24f, w / 24f);
+            switch (type) {
+                case CLEAR: sun(k, 12, 12, 4.2f, 2.6f); break;
+                case CLEAR_N: moon(k, 12, 12.5f, 7f); break;
+                case PARTLY: case PARTLY_N: {
+                    final android.graphics.Path cl = cloud(1.5f, 2.5f);
+                    final boolean day = type == PARTLY;
+                    behindCloud(k, cl, new Runnable() { public void run() {
+                        if (day) sun(k, 8.5f, 8.5f, 3.4f, 1.9f); else moon(k, 8.5f, 8.5f, 4.8f);
+                    } });
+                    k.drawPath(cl, st);
+                    break;
+                }
+                case CLOUD: k.drawPath(cloud(0, 0.5f), st); break;
+                case FOG:
+                    k.drawPath(cloud(0, -2.5f), st);
+                    k.drawLine(4.5f, 18.5f, 19.5f, 18.5f, st);
+                    k.drawLine(7f, 21.5f, 17f, 21.5f, st);
+                    break;
+                case DRIZZLE:
+                    k.drawPath(cloud(0, -3f), st);
+                    for (float x : new float[]{8.5f, 12.5f, 16.5f}) k.drawCircle(x, 19.5f, 0.9f, fi);
+                    break;
+                case RAIN:
+                    k.drawPath(cloud(0, -3f), st);
+                    for (float x : new float[]{9f, 13f, 17f}) k.drawLine(x, 17.5f, x - 1.4f, 21.5f, st);
+                    break;
+                case SNOW:
+                    k.drawPath(cloud(0, -3f), st);
+                    for (float x : new float[]{8.5f, 12.5f, 16.5f}) {
+                        k.drawLine(x - 1.4f, 19.5f, x + 1.4f, 19.5f, st);
+                        k.drawLine(x, 18.1f, x, 20.9f, st);
+                    }
+                    break;
+                case STORM: {
+                    k.drawPath(cloud(0, -3f), st);
+                    android.graphics.Path bolt = new android.graphics.Path();
+                    bolt.moveTo(13.2f, 15.2f); bolt.lineTo(10f, 19.5f); bolt.lineTo(12.4f, 19.5f);
+                    bolt.lineTo(11.2f, 23f); bolt.lineTo(14.8f, 18.2f); bolt.lineTo(12.4f, 18.2f); bolt.close();
+                    k.drawPath(bolt, fi);
+                    break;
+                }
+                case RISE: case SET: {
+                    k.drawLine(3f, 17f, 21f, 17f, st);
+                    android.graphics.RectF arc = new android.graphics.RectF(7f, 10f, 17f, 20f);
+                    k.drawArc(arc, 180, 180, false, st);
+                    boolean up = type == RISE;
+                    float y1 = up ? 7.5f : 2.5f, y2 = up ? 2.5f : 7.5f;
+                    k.drawLine(12f, y1, 12f, y2, st);
+                    k.drawLine(10f, up ? 4.5f : 5.5f, 12f, y2, st);
+                    k.drawLine(14f, up ? 4.5f : 5.5f, 12f, y2, st);
+                    break;
+                }
+            }
+            k.restore();
+        }
+
+        @Override public void setAlpha(int a) { st.setAlpha(a); fi.setAlpha(a); }
+        @Override public void setColorFilter(android.graphics.ColorFilter f) { st.setColorFilter(f); fi.setColorFilter(f); }
+        @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
     }
 
     /** Icone "toutes les applis" : grille 3x3 centree. */

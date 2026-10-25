@@ -215,6 +215,26 @@ Dans **Toutes**, un appui long sur une appli permet aussi de l'**ajouter au dock
 
 Ces réglages sont enregistrés sur la TV. Si vous relancez plus tard l'option 3 du kit, ce sont les choix faits dans le kit qui s'appliquent.
 
+### Thèmes
+
+Dans **« ✎ Modifier l'accueil »**, choisissez **Thème** :
+
+| Thème | Disposition |
+|---|---|
+| **Classique** (par défaut) | Heure en haut à droite, dock en verre en bas. |
+| **Épuré** | Grande horloge au centre de l'écran, dock flottant sans fond. |
+| **Studio** | Tout aligné à gauche, façon magazine : titre en haut, heure et widgets au-dessus du dock. |
+| **Cinéma** | Comme Classique, mais le dock et le titre s'effacent après quelques secondes sans toucher la télécommande. La première touche les fait réapparaître. |
+
+### Widgets
+
+Dans **« ✎ Modifier l'accueil »**, choisissez **Widgets** :
+
+- **Météo** : icône, température actuelle, minimale et maximale du jour. Choisissez votre ville avec **« Ville »** (clavier de la TV).
+- **Lever et coucher du soleil** : sous la météo.
+
+La météo se met à jour toutes les 30 minutes, uniquement quand l'accueil est affiché. Seul le nom de la ville est envoyé, sans compte ni pistage. Données météo : [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0).
+
 ## Sécurité et retour en arrière
 
 - **Verrou d'identité.** Le kit enregistre le numéro de série de votre TV. Avant chaque action, il vérifie que l'appareil à cette adresse est bien le même. Une autre TV, une box ou un Fire Stick qui récupère cette IP ne sera jamais modifié.
