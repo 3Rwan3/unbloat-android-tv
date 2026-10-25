@@ -452,6 +452,28 @@ DOCK_NAMES=("Netflix" "YouTube" "Prime Video"
 # Android 10+ : l'accueil par défaut est un « rôle » système, en plus de set-home-activity
 Set_HomeRole() { [ "${INFO_Sdk:-0}" -ge 29 ] 2>/dev/null && Sh "cmd role add-role-holder android.app.role.HOME $1" >/dev/null; return 0; }
 
+# TCL : les boutons Netflix / YouTube / Prime Video de la télécommande ne marchent qu'avec l'accueil Google TV.
+# Quand il est désactivé, le service d'accessibilité de Zen Home (KeyService) prend le relais pour ces seules touches.
+KEY_SVC="tv.zenhome/tv.zenhome.KeyService"
+Enable_KeyService() {
+    local cur
+    case "$INFO_Brand $INFO_Manufacturer" in *TCL*|*tcl*|*Tcl*) ;; *) return 0 ;; esac
+    cur="$(trim "$(Sh "settings get secure enabled_accessibility_services" | tr -d '\n')")"
+    [ "$cur" = "null" ] && cur=""
+    case ":$cur:" in *":$KEY_SVC:"*) ;; *) Sh "settings put secure enabled_accessibility_services ${cur:+$cur:}$KEY_SVC" >/dev/null ;; esac
+    Sh "settings put secure accessibility_enabled 1" >/dev/null
+    Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps."
+}
+Disable_KeyService() {
+    local cur rest
+    cur="$(trim "$(Sh "settings get secure enabled_accessibility_services" | tr -d '\n')")"
+    case "$cur" in ""|null) return 0 ;; esac
+    rest="$(printf '%s' "$cur" | tr ':' '\n' | grep -vxF -e "$KEY_SVC" -e "tv.zenhome/.KeyService" | grep -v '^$' | paste -sd: -)"
+    [ "$rest" = "$cur" ] && return 0
+    if [ -n "$rest" ]; then Sh "settings put secure enabled_accessibility_services $rest" >/dev/null
+    else Sh "settings delete secure enabled_accessibility_services" >/dev/null; Sh "settings put secure accessibility_enabled 0" >/dev/null; fi
+}
+
 # Vrai si un réseau Wi-Fi enregistré a été créé par setupwraith (assistant de première configuration de Google TV)
 Test_WraithWifi() { Sh "dumpsys wifi" | grep -Eq '(cname|creatorName)=com\.google\.android\.tungsten\.setupwraith'; }
 
@@ -475,7 +497,7 @@ Disable_OrigHome() {
     Set_HomeRole "$ZEN_PKG"
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 5
-    case "$(Get_Home)" in "$ZEN_PKG"/*) return 0 ;; esac
+    case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; return 0 ;; esac
     Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
     for q in $toOff; do Sh "pm enable $q" >/dev/null; done
     Get_State
@@ -644,6 +666,7 @@ Do_Restore() {
         Ok "Animations d'origine" "Original animations"
     fi
     case "$ST_ORIGINAL_HOME" in ""|"$ZEN_PKG"/*) ;; *) Sh "cmd package set-home-activity $ST_ORIGINAL_HOME" >/dev/null; Set_HomeRole "${ST_ORIGINAL_HOME%%/*}"; Ok "Écran d'accueil : $ST_ORIGINAL_HOME" "Home screen: $ST_ORIGINAL_HOME" ;; esac
+    Disable_KeyService
     if in_list "$ZEN_PKG" "$(Get_Packages "")"; then
         if YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" 1; then A uninstall "$ZEN_PKG" >/dev/null; Ok "Zen Home désinstallé" "Zen Home uninstalled"; fi
         for k in zenhome_title_b64 zenhome_title_mode zenhome_layout zenhome_dock zenhome_rev zenhome_interval; do Sh "settings delete global $k" >/dev/null; done

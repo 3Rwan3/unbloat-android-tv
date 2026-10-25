@@ -824,6 +824,12 @@ public class Home extends Activity {
     @Override
     public boolean onKeyDown(int code, KeyEvent e) {
         if (code == KeyEvent.KEYCODE_BACK) { closeTopOverlay(); return true; } // l'accueil ne se ferme jamais
+        // boutons d'applis de la telecommande TCL (si le service KeyService n'est pas actif)
+        String keyApp = KeyService.appForKey(code);
+        if (keyApp != null && overlays.isEmpty() && moveIndex < 0 && launchIntent(keyApp) != null) {
+            if (e.getRepeatCount() == 0) launch(keyApp);
+            return true;
+        }
         // touche Source / TV : sur certaines TV, seul l'accueil d'origine la gerait
         if ((code == KeyEvent.KEYCODE_TV_INPUT || code == KeyEvent.KEYCODE_TV) && overlays.isEmpty() && moveIndex < 0) {
             openInputs();

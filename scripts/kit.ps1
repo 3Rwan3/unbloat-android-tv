@@ -348,6 +348,30 @@ function Set-HomeRole([string]$pkg) {
     if ([int]("0" + $script:Info.Sdk) -ge 29) { Sh "cmd role add-role-holder android.app.role.HOME $pkg" | Out-Null }
 }
 
+# TCL : les boutons Netflix / YouTube / Prime Video de la télécommande ne marchent qu'avec l'accueil Google TV.
+# Quand il est désactivé, le service d'accessibilité de Zen Home (KeyService) prend le relais pour ces seules touches.
+$KeySvc = "tv.zenhome/tv.zenhome.KeyService"
+function Enable-KeyService {
+    if ("$($script:Info.Brand) $($script:Info.Manufacturer)" -notmatch "TCL") { return }
+    $cur = ((Sh "settings get secure enabled_accessibility_services") -join "").Trim()
+    if (-not $cur -or $cur -eq "null") { $cur = "" }
+    if (($cur -split ":") -notcontains $KeySvc) {
+        $new = if ($cur) { "$($cur):$KeySvc" } else { $KeySvc }
+        Sh "settings put secure enabled_accessibility_services $new" | Out-Null
+    }
+    Sh "settings put secure accessibility_enabled 1" | Out-Null
+    Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps."
+}
+function Disable-KeyService {
+    $cur = ((Sh "settings get secure enabled_accessibility_services") -join "").Trim()
+    if (-not $cur -or $cur -eq "null") { return }
+    $all = @($cur -split ":" | Where-Object { $_ })
+    $rest = @($all | Where-Object { $_ -ne $KeySvc -and $_ -ne "tv.zenhome/.KeyService" })
+    if ($rest.Count -eq $all.Count) { return }
+    if ($rest.Count -gt 0) { Sh ("settings put secure enabled_accessibility_services " + ($rest -join ":")) | Out-Null }
+    else { Sh "settings delete secure enabled_accessibility_services" | Out-Null; Sh "settings put secure accessibility_enabled 0" | Out-Null }
+}
+
 # Vrai si un réseau Wi-Fi enregistré a été créé par setupwraith (assistant de première configuration de Google TV)
 function Test-WraithWifi {
     $w = (Sh "dumpsys wifi") -join "`n"
@@ -374,7 +398,7 @@ function Disable-OrigHome([string]$origPkg) {
     Set-HomeRole $ZenPkg
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 5
-    if ((Get-Home) -like "$ZenPkg/*") { return $true }
+    if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; return $true }
     Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
     foreach ($q in $toOff) { Sh "pm enable $q" | Out-Null }
     $st = Get-State; $st.disabled = @($st.disabled | Where-Object { $toOff -notcontains $_ }); $st.launcher_disabled = $null; Save-State $st
@@ -524,6 +548,7 @@ function Do-Restore {
         Ok "Animations d'origine" "Original animations"
     }
     if ($st.original_home -and $st.original_home -notlike "$ZenPkg/*") { Sh "cmd package set-home-activity $($st.original_home)" | Out-Null; Set-HomeRole ($st.original_home -replace "/.*$", ""); Ok "Écran d'accueil : $($st.original_home)" "Home screen: $($st.original_home)" }
+    Disable-KeyService
     $zen = @(Get-Packages "") -contains $ZenPkg
     if ($zen) {
         if (YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" $true) { A uninstall $ZenPkg | Out-Null; Ok "Zen Home désinstallé" "Zen Home uninstalled" }
