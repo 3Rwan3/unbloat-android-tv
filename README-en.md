@@ -45,6 +45,19 @@ Is your Android TV laggy, full of ads, with audio drifting out of sync during mo
 
 ## Quick start
 
+**The easiest way: the app.** Download the version for your computer from the [Releases](https://github.com/xMazaki/unbloat-android-tv/releases/latest) and run it: it finds your TV on the network, guides you through turning on debugging, and everything takes a few clicks.
+
+| System | File | First launch |
+|---|---|---|
+| Windows 10 / 11 | `KitTVAndroid-…-windows-x64.exe` | If Windows shows "Windows protected your PC": **More info → Run anyway**. |
+| macOS (Apple M1 and later) | `KitTVAndroid-…-macos-apple-silicon.zip` | Open the zip, drag **Kit TV Android** to Applications. On first launch: right-click → **Open**, or **System Settings → Privacy & Security → Open Anyway**. |
+| macOS (Intel processor) | `KitTVAndroid-…-macos-intel.zip` | Same as above. |
+| Linux | `KitTVAndroid-…-linux-x64.tar.gz` (or `arm64`) | Extract, then run `kit-tv-android`. |
+
+The app opens in your browser and closes when you close the tab. It does exactly the same as the scripts below, with the same safety checks. The apps aren't signed (a certificate costs money), hence the warning on first launch.
+
+**With the scripts** (nothing to download but the kit):
+
 1. Enable developer mode and debugging on the TV ([see how](#prepare-the-tv-5-minutes)).
 2. Double-click **`LANCER.bat`** (Windows) or **`LANCER.command`** (macOS), or run **`./LANCER.sh`** (Linux), then type the TV's IP address.
 3. Accept "Allow debugging" on the TV.

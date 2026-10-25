@@ -45,6 +45,19 @@ Votre TV Android rame, affiche des pubs partout, et le son se décale pendant le
 
 ## En bref
 
+**Le plus simple : l'application.** Téléchargez la version pour votre ordinateur dans les [Releases](https://github.com/xMazaki/unbloat-android-tv/releases/latest), lancez-la : elle trouve votre TV sur le réseau, vous guide pour activer le débogage, et tout se fait en quelques clics.
+
+| Système | Fichier | Premier lancement |
+|---|---|---|
+| Windows 10 / 11 | `KitTVAndroid-…-windows-x64.exe` | Si Windows affiche « Windows a protégé votre ordinateur » : **Informations complémentaires → Exécuter quand même**. |
+| macOS (Apple M1 et plus récents) | `KitTVAndroid-…-macos-apple-silicon.zip` | Ouvrez le zip, glissez **Kit TV Android** dans Applications. Au premier lancement : clic droit → **Ouvrir**, ou **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**. |
+| macOS (processeur Intel) | `KitTVAndroid-…-macos-intel.zip` | Pareil que ci-dessus. |
+| Linux | `KitTVAndroid-…-linux-x64.tar.gz` (ou `arm64`) | Décompressez, puis lancez `kit-tv-android`. |
+
+L'application s'ouvre dans votre navigateur et se ferme quand vous fermez l'onglet. Elle fait exactement la même chose que les scripts ci-dessous, avec les mêmes sécurités. Les applications ne sont pas signées (un certificat est payant), d'où l'avertissement au premier lancement.
+
+**Avec les scripts** (sans rien télécharger d'autre que le kit) :
+
 1. Activez le mode développeur et le débogage sur la TV ([voir comment](#préparer-la-tv-5-minutes)).
 2. Double-cliquez sur **`LANCER.bat`** (Windows) ou **`LANCER.command`** (macOS), ou lancez **`./LANCER.sh`** (Linux), puis tapez l'adresse IP de la TV.
 3. Acceptez « Autoriser le débogage » sur la TV.
