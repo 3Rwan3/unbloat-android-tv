@@ -781,9 +781,21 @@ public class Home extends Activity {
         showMenu(appLabel(pkg), l, a);
     }
 
+    /** Seul le menu ou la liste du dessus peut recevoir le focus : les flèches ne doivent jamais sauter vers ce qui est derrière. */
+    void updateFocusBlocking() {
+        int n = overlays.size();
+        dock.setDescendantFocusability(n == 0 ? ViewGroup.FOCUS_AFTER_DESCENDANTS : ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        for (int i = 0; i < n; i++) {
+            View o = overlays.get(i);
+            if (o instanceof ViewGroup)
+                ((ViewGroup) o).setDescendantFocusability(i == n - 1 ? ViewGroup.FOCUS_AFTER_DESCENDANTS : ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        }
+    }
+
     void openOverlay(View ov, View focus) {
         root.addView(ov, new FrameLayout.LayoutParams(-1, -1));
         overlays.add(ov);
+        updateFocusBlocking();
         ov.setAlpha(0f); ov.animate().alpha(1f).setDuration(160).start();
         if (focus != null) focus.requestFocus();
     }
@@ -791,6 +803,7 @@ public class Home extends Activity {
     void closeOverlay(View ov, boolean refocus) {
         root.removeView(ov);
         overlays.remove(ov);
+        updateFocusBlocking();
         if (refocus) {
             if (!overlays.isEmpty()) overlays.get(overlays.size() - 1).requestFocus();
             else focusDock();

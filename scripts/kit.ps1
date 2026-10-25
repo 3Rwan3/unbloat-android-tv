@@ -348,12 +348,26 @@ function Set-HomeRole([string]$pkg) {
     if ([int]("0" + $script:Info.Sdk) -ge 29) { Sh "cmd role add-role-holder android.app.role.HOME $pkg" | Out-Null }
 }
 
+# Vrai si un réseau Wi-Fi enregistré a été créé par setupwraith (assistant de première configuration de Google TV)
+function Test-WraithWifi {
+    $w = (Sh "dumpsys wifi") -join "`n"
+    return ($w -match "(cname|creatorName)=com\.google\.android\.tungsten\.setupwraith")
+}
+
 # Désactive l'accueil d'origine (et l'écran de secours Google TV), puis vérifie que Zen Home a bien pris la place.
 # Si la TV n'a plus d'accueil utilisable, tout est réactivé aussitôt : la TV ne peut pas rester sans accueil.
 function Disable-OrigHome([string]$origPkg) {
     $toOff = @($origPkg)
+    $wraithKept = $false
     # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
-    if ((Get-Packages "-e") -contains $GtvFallback) { $toOff += $GtvFallback }
+    if ((Get-Packages "-e") -contains $GtvFallback) {
+        # mais si le Wi-Fi lui appartient, Android supprime ce réseau en le désactivant : la TV perdrait sa connexion (et ADB)
+        if (Test-WraithWifi) {
+            Warn "Le Wi-Fi de la TV a été enregistré pendant sa configuration initiale : il appartient à l'écran de secours Google (setupwraith). Le désactiver supprimerait ce réseau et couperait la connexion, il est donc laissé actif." "The TV's Wi-Fi was saved during its initial setup: it belongs to the Google fallback screen (setupwraith). Disabling it would delete that network and cut the connection, so it is left enabled."
+            Say "   Pour pouvoir le désactiver : sur la TV, Paramètres > Réseau, « Oublier » votre réseau Wi-Fi puis reconnectez-vous, et relancez l'option 3." "   To be able to disable it: on the TV, Settings > Network, 'Forget' your Wi-Fi network then reconnect, and run option 3 again." "DarkGray"
+            $wraithKept = $true
+        } else { $toOff += $GtvFallback }
+    }
     Disable-Packages $toOff "launcher"
     $st = Get-State; $st.launcher_disabled = $origPkg; Save-State $st
     Sh "cmd package set-home-activity $ZenPkg/.Home" | Out-Null
@@ -365,6 +379,7 @@ function Disable-OrigHome([string]$origPkg) {
     foreach ($q in $toOff) { Sh "pm enable $q" | Out-Null }
     $st = Get-State; $st.disabled = @($st.disabled | Where-Object { $toOff -notcontains $_ }); $st.launcher_disabled = $null; Save-State $st
     Sh "input keyevent KEYCODE_HOME" | Out-Null
+    if ($wraithKept) { Say "   L'écran de secours Google a pris la place de l'accueil. Reconnectez le Wi-Fi comme indiqué ci-dessus, puis relancez l'option 3." "   The Google fallback screen took the home screen's place. Reconnect the Wi-Fi as explained above, then run option 3 again." "DarkGray" }
     return $false
 }
 
