@@ -89,6 +89,8 @@ These figures come from a single TV. Your results will differ.
 
 **Tested for real on:** a TCL BeyondTV (Android 9). Also tested by users: a TCL BeyondTV2 (Android 9) and an XGIMI MoGo 3 Pro projector (Google TV, Android 11). The other devices in this table should work, since they use the same Android commands, but they have not all been tested.
 
+**Philips and Ambilight:** according to user feedback, Ambilight keeps working without any problem after slimming and installing Zen Home. The kit doesn't touch any Ambilight package.
+
 ### Fire TV / Fire Stick: changing the home screen
 
 Amazon protects its home screen: without root, it can't be disabled or replaced the way the kit does on other TVs. Use the kit for **slimming** (options 1, 2 and 6), then one of these dedicated tools for the home screen. They redirect the Home button to the launcher of your choice through an accessibility service, without root, on Fire OS 7 and 8:

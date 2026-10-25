@@ -89,6 +89,8 @@ Ces chiffres viennent d'une seule TV. Le gain sera différent sur la vôtre.
 
 **Testé en conditions réelles :** une TCL BeyondTV (Android 9). Testés aussi par des utilisateurs : une TCL BeyondTV2 (Android 9) et un projecteur XGIMI MoGo 3 Pro (Google TV, Android 11). Les autres appareils de ce tableau devraient fonctionner, car ils utilisent les mêmes commandes Android, mais ils n'ont pas tous été testés.
 
+**Philips et Ambilight :** d'après un retour d'utilisateur, l'Ambilight continue de fonctionner sans problème après l'allègement et l'installation de Zen Home. Le kit ne touche à aucun paquet Ambilight.
+
 ### Fire TV / Fire Stick : changer l'accueil
 
 Amazon protège son écran d'accueil : sans root, impossible de le désactiver ou de le remplacer comme le fait le kit sur les autres TV. Utilisez le kit pour l'**allègement** (options 1, 2 et 6), puis l'un de ces outils dédiés pour l'accueil. Ils redirigent la touche Accueil vers le launcher de votre choix grâce à un service d'accessibilité, sans root, sur Fire OS 7 et 8 :
