@@ -378,6 +378,17 @@ function Test-WraithWifi {
     return ($w -match "(cname|creatorName)=com\.google\.android\.tungsten\.setupwraith")
 }
 
+# Tous les écrans d'accueil candidats de la TV, avec leur priorité
+function Get-HomeCandidates {
+    $prio = 0; $list = @()
+    foreach ($l in (Sh "cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME")) {
+        $l = "$l".Trim()
+        if ($l -match "priority=(-?\d+)") { $prio = [int]$Matches[1] }
+        elseif ($l -match "^[\w\.]+/[\w\.\$]+$") { $list += [pscustomobject]@{ Pkg = ($l -replace "/.*$", ""); Prio = $prio } }
+    }
+    return $list
+}
+
 # Désactive l'accueil d'origine (et l'écran de secours Google TV), puis vérifie que Zen Home a bien pris la place.
 # Si la TV n'a plus d'accueil utilisable, tout est réactivé aussitôt : la TV ne peut pas rester sans accueil.
 function Disable-OrigHome([string]$origPkg) {
@@ -399,7 +410,23 @@ function Disable-OrigHome([string]$origPkg) {
     Sh "input keyevent KEYCODE_HOME" | Out-Null
     Start-Sleep 5
     if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; return $true }
+    # d'autres écrans d'accueil (second launcher Google ou du fabricant) peuvent encore passer avant Zen Home
+    $extra = @(Get-HomeCandidates | Where-Object { $_.Pkg -ne $ZenPkg -and $_.Prio -ge 0 -and $Protected -notcontains $_.Pkg -and $toOff -notcontains $_.Pkg -and -not ($wraithKept -and $_.Pkg -eq $GtvFallback) } | ForEach-Object { $_.Pkg } | Select-Object -Unique)
+    if ($extra.Count -gt 0) {
+        Warn ("D'autres écrans d'accueil passent encore avant Zen Home : " + ($extra -join ", ") + ".") ("Other home screens still come before Zen Home: " + ($extra -join ", ") + ".")
+        if (YesNo "Les désactiver aussi (réversible, retour arrière automatique si ça ne suffit pas) ?" "Disable them too (reversible, automatic rollback if that's not enough)?" $true) {
+            Disable-Packages $extra "launcher"
+            $toOff += $extra
+            Sh "cmd package set-home-activity $ZenPkg/.Home" | Out-Null
+            Set-HomeRole $ZenPkg
+            Sh "input keyevent KEYCODE_HOME" | Out-Null
+            Start-Sleep 5
+            if ((Get-Home) -like "$ZenPkg/*") { Enable-KeyService; return $true }
+        }
+    }
+    $picked = Get-Home; if (-not $picked) { $picked = T "aucun, ou fenêtre de choix" "none, or a chooser" }
     Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
+    Say "   Accueil retenu par la TV : $picked" "   Home screen picked by the TV: $picked" "DarkGray"
     foreach ($q in $toOff) { Sh "pm enable $q" | Out-Null }
     $st = Get-State; $st.disabled = @($st.disabled | Where-Object { $toOff -notcontains $_ }); $st.launcher_disabled = $null; Save-State $st
     Sh "input keyevent KEYCODE_HOME" | Out-Null

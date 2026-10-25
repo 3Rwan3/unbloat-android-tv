@@ -479,8 +479,16 @@ Test_WraithWifi() { Sh "dumpsys wifi" | grep -Eq '(cname|creatorName)=com\.googl
 
 # Désactive l'accueil d'origine (et l'écran de secours Google TV), puis vérifie que Zen Home a bien pris la place.
 # Si la TV n'a plus d'accueil utilisable, tout est réactivé aussitôt : la TV ne peut pas rester sans accueil.
+# Paquets des écrans d'accueil candidats de priorité >= 0, un par ligne
+Get_HomeCandidates() {
+    Sh "cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME" \
+        | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+        | awk '/priority=/ { p = $0; sub(/.*priority=/, "", p); sub(/ .*/, "", p); next }
+               /^[A-Za-z0-9_.]+\/[A-Za-z0-9_.$]+$/ { if (p + 0 >= 0) { split($0, a, "/"); print a[1] } }'
+}
+
 Disable_OrigHome() {
-    local orig="$1" toOff q wraithKept
+    local orig="$1" toOff q wraithKept extra picked
     toOff="$orig"; wraithKept=0
     # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
     if in_list "$GTV_FALLBACK" "$(Get_Packages -e)"; then
@@ -498,7 +506,33 @@ Disable_OrigHome() {
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 5
     case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; return 0 ;; esac
+    # d'autres écrans d'accueil (second launcher Google ou du fabricant) peuvent encore passer avant Zen Home
+    extra=""
+    while read -r q; do
+        [ -z "$q" ] && continue
+        [ "$q" = "$ZEN_PKG" ] && continue
+        in_list "$q" "$PROTECTED" && continue
+        in_list "$q" "$(printf '%s\n' $toOff)" && continue
+        [ $wraithKept = 1 ] && [ "$q" = "$GTV_FALLBACK" ] && continue
+        in_list "$q" "$(printf '%s\n' $extra)" || extra="$extra${extra:+ }$q"
+    done <<EOF
+$(Get_HomeCandidates)
+EOF
+    if [ -n "$extra" ]; then
+        Warn "D'autres écrans d'accueil passent encore avant Zen Home : $(printf '%s' "$extra" | sed 's/ /, /g')." "Other home screens still come before Zen Home: $(printf '%s' "$extra" | sed 's/ /, /g')."
+        if YesNo "Les désactiver aussi (réversible, retour arrière automatique si ça ne suffit pas) ?" "Disable them too (reversible, automatic rollback if that's not enough)?" 1; then
+            Disable_Packages launcher $extra
+            toOff="$toOff $extra"
+            Sh "cmd package set-home-activity $ZEN_PKG/.Home" >/dev/null
+            Set_HomeRole "$ZEN_PKG"
+            Sh "input keyevent KEYCODE_HOME" >/dev/null
+            sleep 5
+            case "$(Get_Home)" in "$ZEN_PKG"/*) Enable_KeyService; return 0 ;; esac
+        fi
+    fi
+    picked="$(Get_Home)"; [ -z "$picked" ] && picked="$(T "aucun, ou fenêtre de choix" "none, or a chooser")"
     Err "La TV n'accepte pas Zen Home sans son accueil d'origine : réactivation immédiate, rien n'est perdu." "The TV won't accept Zen Home without its original home screen: re-enabling it now, nothing is lost."
+    Say "   Accueil retenu par la TV : $picked" "   Home screen picked by the TV: $picked" DarkGray
     for q in $toOff; do Sh "pm enable $q" >/dev/null; done
     Get_State
     for q in $toOff; do ST_DISABLED="$(printf '%s\n' "$ST_DISABLED" | grep -vxF -- "$q")"; done
