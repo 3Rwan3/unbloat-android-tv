@@ -105,8 +105,7 @@ public class Home extends Activity {
     ImageView wxIcon, sunUpIcon, sunDownIcon;
     TextView wxTemp, wxRange, sunUpText, sunDownText;
     GradientDrawable dockGlass;
-    String theme = "classic";                        // classic | centered | studio | cinema
-    boolean uiHidden = false, wakeSwallow = false;   // theme Cinema : interface effacee apres un moment
+    String theme = "classic";                        // classic | centered | studio
     volatile boolean wxBusy = false;
     List<String> walls = new ArrayList<>();
     boolean wallsFromFiles = false;
@@ -182,7 +181,10 @@ public class Home extends Activity {
         infoBlock.setOrientation(LinearLayout.VERTICAL);
         clock = text("", 40, fLight, 0xFFFFFFFF);
         date = text("", 15, fReg, 0xE6FFFFFF);
-        infoBlock.addView(clock); infoBlock.addView(date);
+        infoBlock.addView(clock, new LinearLayout.LayoutParams(-2, -2));
+        infoBlock.addView(date, new LinearLayout.LayoutParams(-2, -2));
+        clock.setSingleLine(true);
+        date.setSingleLine(true);
         weatherRow = new LinearLayout(this);
         weatherRow.setOrientation(LinearLayout.HORIZONTAL);
         weatherRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -277,6 +279,7 @@ public class Home extends Activity {
             e.apply();
         }
         theme = prefs.getString("theme", "classic");
+        if (!java.util.Arrays.asList(THEMES).contains(theme)) theme = "classic";
         titleMode = prefs.getString("title_mode", "device");
         titleText = prefs.getString("title", "");
         try { layout = Integer.parseInt(prefs.getString("layout", "4")); } catch (Exception ex) { layout = 4; }
@@ -650,17 +653,6 @@ public class Home extends Activity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
         int kc = e.getKeyCode();
-        // theme Cinema : la premiere touche ne fait que reveiller l'interface
-        if (uiHidden) {
-            if (e.getAction() == KeyEvent.ACTION_DOWN) { setUiVisible(true); wakeSwallow = true; }
-            scheduleHide();
-            return true;
-        }
-        if (wakeSwallow) {
-            if (e.getAction() == KeyEvent.ACTION_UP) wakeSwallow = false;
-            return true;
-        }
-        scheduleHide();
         // appui long sur OK, aussi pour les telecommandes qui envoient la touche en repetition
         if (isOk(kc) && moveIndex < 0) {
             long t = e.getEventTime();
@@ -937,26 +929,22 @@ public class Home extends Activity {
         if (moveIndex >= 0) endMove();
         while (!overlays.isEmpty()) closeOverlay(overlays.get(overlays.size() - 1), false);
         if (editMode) endEdit();
-        setUiVisible(true);
-        scheduleHide();
         focusDock();
     }
 
     // =====================================================================
     // Themes : meme contenu, disposition differente. Choisis depuis « Modifier l'accueil » > Theme.
-    static final String[] THEMES = {"classic", "centered", "studio", "cinema"};
+    static final String[] THEMES = {"classic", "centered", "studio"};
 
     String themeName(String id) {
         if ("centered".equals(id)) return t("Épuré", "Minimal");
         if ("studio".equals(id)) return "Studio";
-        if ("cinema".equals(id)) return t("Cinéma", "Cinema");
         return t("Classique", "Classic");
     }
 
     String themeDesc(String id) {
         if ("centered".equals(id)) return t("grande horloge au centre, dock flottant", "large centred clock, floating dock");
         if ("studio".equals(id)) return t("tout aligné à gauche, façon magazine", "everything aligned left, magazine style");
-        if ("cinema".equals(id)) return t("l'interface s'efface pour laisser la photo", "the interface fades away to leave the photo");
         return t("heure en haut à droite, dock en bas", "time top right, dock at the bottom");
     }
 
@@ -972,7 +960,7 @@ public class Home extends Activity {
     void applyTheme() {
         if (infoBlock == null) return;
         boolean centered = "centered".equals(theme), studio = "studio".equals(theme);
-        int hGrav = studio ? Gravity.START : Gravity.CENTER_HORIZONTAL;
+        int hGrav = Gravity.CENTER_HORIZONTAL;   // dock toujours centré : en 4 applis il occupe presque toute la largeur
 
         FrameLayout.LayoutParams lt = (FrameLayout.LayoutParams) titleView.getLayoutParams();
         if (centered) { lt.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL; lt.setMargins(0, dp(34), 0, 0); size(titleView, 17); }
@@ -1011,7 +999,7 @@ public class Home extends Activity {
 
         FrameLayout.LayoutParams ld = (FrameLayout.LayoutParams) dock.getLayoutParams();
         ld.gravity = Gravity.BOTTOM | hGrav;
-        ld.setMargins(studio ? dp(46) : 0, 0, 0, dp(46));
+        ld.setMargins(0, 0, 0, dp(46));
         dock.setLayoutParams(ld);
         dock.setBackground(centered ? null : dockGlass);
 
@@ -1019,7 +1007,7 @@ public class Home extends Activity {
             if (v == null) continue;
             FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) v.getLayoutParams();
             lp.gravity = Gravity.BOTTOM | hGrav;
-            lp.setMargins(studio ? dp(58) : 0, 0, 0, dp(layoutHint()));
+            lp.setMargins(0, 0, 0, dp(layoutHint()));
             v.setLayoutParams(lp);
         }
 
@@ -1028,7 +1016,6 @@ public class Home extends Activity {
         FrameLayout.LayoutParams lb = (FrameLayout.LayoutParams) botGrad.getLayoutParams();
         lb.height = dp(studio ? 600 : 340); botGrad.setLayoutParams(lb);
 
-        if (!"cinema".equals(theme)) { h.removeCallbacks(hideUiRun); setUiVisible(true); }
     }
 
     void showThemeMenu() {
@@ -1040,36 +1027,9 @@ public class Home extends Activity {
                 theme = id;
                 prefs.edit().putString("theme", id).apply();
                 buildDock(0);
-                scheduleHide();
             } });
         }
         showMenu(t("Thème", "Theme"), labels, actions);
-    }
-
-    // ---------- Theme Cinema : l'interface s'efface apres un moment sans toucher la telecommande
-    static final long CINEMA_IDLE_MS = 12_000L;
-
-    final Runnable hideUiRun = new Runnable() { public void run() {
-        if (!"cinema".equals(theme)) return;
-        if (!overlays.isEmpty() || moveIndex >= 0 || editMode) { scheduleHide(); return; }
-        setUiVisible(false);
-    } };
-
-    void scheduleHide() {
-        h.removeCallbacks(hideUiRun);
-        if ("cinema".equals(theme)) h.postDelayed(hideUiRun, CINEMA_IDLE_MS);
-    }
-
-    void setUiVisible(boolean visible) {
-        if (dock == null) return;
-        if (visible == !uiHidden && dock.getAlpha() == (visible ? 1f : 0f)) return;
-        uiHidden = !visible;
-        float a = visible ? 1f : 0f;
-        for (View v : new View[]{dock, titleView, editBtn, botGrad, hintView}) {
-            if (v == null) continue;
-            v.animate().cancel();
-            v.animate().alpha(a).setDuration(visible ? 260 : 1200).start();
-        }
     }
 
     // =====================================================================
@@ -1427,8 +1387,6 @@ public class Home extends Activity {
         h.removeCallbacksAndMessages(null);
         h.post(tick);
         h.postDelayed(rotate, rotationMs);
-        setUiVisible(true);
-        scheduleHide();
         renderWeather();
         refreshWeather(false);
     }

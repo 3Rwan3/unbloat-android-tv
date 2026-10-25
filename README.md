@@ -239,8 +239,7 @@ Dans **« ✎ Modifier l'accueil »**, choisissez **Thème** :
 |---|---|
 | **Classique** (par défaut) | Heure en haut à droite, dock en verre en bas. |
 | **Épuré** | Grande horloge au centre de l'écran, dock flottant sans fond. |
-| **Studio** | Tout aligné à gauche, façon magazine : titre en haut, heure et widgets au-dessus du dock. |
-| **Cinéma** | Comme Classique, mais le dock et le titre s'effacent après quelques secondes sans toucher la télécommande. La première touche les fait réapparaître. |
+| **Studio** | Façon magazine : grand titre en haut à gauche, heure et widgets en bas à gauche, au-dessus du dock. |
 
 ### Widgets
 

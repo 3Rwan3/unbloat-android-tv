@@ -239,8 +239,7 @@ In **"✎ Edit home screen"**, choose **Theme**:
 |---|---|
 | **Classic** (default) | Time top right, glass dock at the bottom. |
 | **Minimal** | Large clock in the middle of the screen, floating dock without a background. |
-| **Studio** | Everything aligned left, magazine style: title at the top, time and widgets above the dock. |
-| **Cinema** | Like Classic, but the dock and title fade away after a few seconds without touching the remote. The first key brings them back. |
+| **Studio** | Magazine style: large title top left, time and widgets bottom left, above the dock. |
 
 ### Widgets
 
