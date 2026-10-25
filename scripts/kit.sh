@@ -475,7 +475,20 @@ Disable_KeyService() {
 }
 
 # Vrai si un réseau Wi-Fi enregistré a été créé par setupwraith (assistant de première configuration de Google TV)
-Test_WraithWifi() { Sh "dumpsys wifi" | grep -Eq '(cname|creatorName)=com\.google\.android\.tungsten\.setupwraith'; }
+Test_WraithWifi() {
+    local w; w="$(Sh "dumpsys wifi")"
+    # seulement les réseaux réellement enregistrés : le reste du rapport contient aussi des historiques (anciens réseaux)
+    if printf '%s\n' "$w" | grep -q "Configured networks Begin"; then
+        w="$(printf '%s\n' "$w" | awk '/Configured networks Begin/ { f = 1 } f { print } /Configured networks End/ { f = 0 }')"
+    fi
+    printf '%s\n' "$w" | grep -Eq '(cname|creatorName)=com\.google\.android\.tungsten\.setupwraith'
+}
+
+# Vrai si le kit est connecté à la TV par son câble Ethernet : supprimer le Wi-Fi ne couperait alors pas la connexion
+Test_OnEthernet() {
+    local ip="${T_%:*}"
+    Sh "ip -o -4 addr show" | awk -v ip="$ip" '{ split($4, a, "/"); if ($3 == "inet" && a[1] == ip) { print $2; exit } }' | grep -q '^eth'
+}
 
 # Désactive l'accueil d'origine (et l'écran de secours Google TV), puis vérifie que Zen Home a bien pris la place.
 # Si la TV n'a plus d'accueil utilisable, tout est réactivé aussitôt : la TV ne peut pas rester sans accueil.
@@ -493,9 +506,12 @@ Disable_OrigHome() {
     # Google TV : sans son accueil, l'écran de secours setupwraith prend la main (logo Google TV en boucle)
     if in_list "$GTV_FALLBACK" "$(Get_Packages -e)"; then
         # mais si le Wi-Fi lui appartient, Android supprime ce réseau en le désactivant : la TV perdrait sa connexion (et ADB)
-        if Test_WraithWifi; then
+        if Test_WraithWifi && Test_OnEthernet; then
+            Warn "Un réseau Wi-Fi enregistré appartient à l'écran de secours Google (setupwraith). La TV est branchée en Ethernet : le kit peut quand même le désactiver, mais ce réseau Wi-Fi sera supprimé (à reconfigurer ensuite si vous en avez besoin)." "A saved Wi-Fi network belongs to the Google fallback screen (setupwraith). The TV is on Ethernet: the kit can still disable it, but that Wi-Fi network will be deleted (set it up again later if you need it)."
+            if YesNo "Le désactiver quand même ?" "Disable it anyway?" 1; then toOff="$toOff $GTV_FALLBACK"; else wraithKept=1; fi
+        elif Test_WraithWifi; then
             Warn "Le Wi-Fi de la TV a été enregistré pendant sa configuration initiale : il appartient à l'écran de secours Google (setupwraith). Le désactiver supprimerait ce réseau et couperait la connexion, il est donc laissé actif." "The TV's Wi-Fi was saved during its initial setup: it belongs to the Google fallback screen (setupwraith). Disabling it would delete that network and cut the connection, so it is left enabled."
-            Say "   Pour pouvoir le désactiver : sur la TV, Paramètres > Réseau, « Oublier » votre réseau Wi-Fi puis reconnectez-vous, et relancez l'option 3." "   To be able to disable it: on the TV, Settings > Network, 'Forget' your Wi-Fi network then reconnect, and run option 3 again." DarkGray
+            Say "   Pour pouvoir le désactiver : sur la TV, Paramètres > Réseau, « Oublier » votre Wi-Fi ET les autres réseaux enregistrés (se reconnecter ne suffit pas), reconnectez-vous en retapant le mot de passe, puis relancez l'option 3. Ou branchez la TV en Ethernet." "   To be able to disable it: on the TV, Settings > Network, 'Forget' your Wi-Fi AND the other saved networks (reconnecting is not enough), reconnect by typing the password again, then run option 3 again. Or plug the TV into Ethernet." DarkGray
             wraithKept=1
         else toOff="$toOff $GTV_FALLBACK"; fi
     fi
