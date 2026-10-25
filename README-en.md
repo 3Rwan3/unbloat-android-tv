@@ -4,6 +4,9 @@
 
 Is your Android TV laggy, full of ads, with audio drifting out of sync during movies? This kit slims it down in a few minutes from a Windows PC, a Mac or a Linux PC. It also installs **Zen Home**, a minimalist Apple TV-style home screen.
 
+> [!TIP]
+> **Download the app, it's the easiest way:** go to **[Releases](https://github.com/xMazaki/unbloat-android-tv/releases/latest)** (in the right-hand column of this page) and pick the version for your computer: Windows, macOS or Linux. It finds your TV on its own and guides you step by step. [Details below](#quick-start).
+
 <table>
   <tr>
     <th align="center">Before</th>

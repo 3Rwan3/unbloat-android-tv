@@ -4,6 +4,9 @@
 
 Votre TV Android rame, affiche des pubs partout, et le son se décale pendant les films ? Ce kit l'allège en quelques minutes depuis un PC Windows, un Mac ou un PC Linux. Il installe aussi **Zen Home**, un écran d'accueil minimaliste façon Apple TV.
 
+> [!TIP]
+> **Téléchargez l'application, c'est le plus simple :** rendez-vous dans **[Releases](https://github.com/xMazaki/unbloat-android-tv/releases/latest)** (dans la colonne de droite de cette page) et prenez la version pour votre ordinateur : Windows, macOS ou Linux. Elle trouve votre TV toute seule et vous guide pas à pas. [Détails ci-dessous](#en-bref).
+
 <table>
   <tr>
     <th align="center">Avant</th>
