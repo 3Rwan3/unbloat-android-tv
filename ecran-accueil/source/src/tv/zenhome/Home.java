@@ -99,7 +99,7 @@ public class Home extends Activity {
     FrameLayout root, wallLayer;
     ImageView wallA, wallB;
     boolean aOnTop = true, released = false;
-    TextView clock, date, titleView, hintView;
+    TextView clock, date, titleView, hintView, editBtn;
     List<String> walls = new ArrayList<>();
     boolean wallsFromFiles = false;
     int wallIdx = 0;
@@ -115,6 +115,7 @@ public class Home extends Activity {
     String titleMode = "device";  // device | none | custom
     String titleText = "";
     int moveIndex = -1;           // >= 0 : appli en cours de deplacement
+    boolean editMode = false;     // mode edition (bouton « Modifier l'accueil ») : OK sur une appli ouvre son menu
     List<View> bigTiles = new ArrayList<>();
 
     int dp(float v) { return Math.round(v * density); }
@@ -202,6 +203,25 @@ public class Home extends Activity {
         FrameLayout.LayoutParams lpD = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
         lpD.setMargins(0, 0, 0, dp(46));
         root.addView(dock, lpD);
+
+        // Bouton « Modifier l'accueil », juste au-dessus du dock (flèche Haut) : marche avec toutes les
+        // télécommandes, y compris celles qui n'ont pas de touche Menu ni d'appui long reconnu
+        editBtn = text("✎  " + t("Modifier l'accueil", "Edit home screen"), 12, fMed, 0x99FFFFFF);
+        editBtn.setShadowLayer(dp(4), 0, dp(1), 0x80000000);
+        editBtn.setPadding(dp(14), dp(6), dp(14), dp(6));
+        final GradientDrawable eb = new GradientDrawable(); eb.setCornerRadius(dp(14)); eb.setColor(0x00FFFFFF);
+        editBtn.setBackground(eb);
+        editBtn.setFocusable(true); editBtn.setClickable(true);
+        editBtn.setOnFocusChangeListener(new View.OnFocusChangeListener() { public void onFocusChange(View v, boolean has) {
+            eb.setColor(has ? 0xF2FFFFFF : 0x00FFFFFF);
+            editBtn.setTextColor(has ? 0xFF111111 : 0x99FFFFFF);
+            editBtn.setShadowLayer(has ? 0 : dp(4), 0, has ? 0 : dp(1), 0x80000000);
+        } });
+        editBtn.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { startEdit(); } });
+        FrameLayout.LayoutParams lpE = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        lpE.setMargins(0, 0, 0, dp(layoutHint()));
+        root.addView(editBtn, lpE);
+
         buildDock(0);
 
         setContentView(root);
@@ -328,6 +348,11 @@ public class Home extends Activity {
         // repositionne l'indication au-dessus du dock
         FrameLayout.LayoutParams lpH = (FrameLayout.LayoutParams) hintView.getLayoutParams();
         if (lpH != null) { lpH.bottomMargin = dp(layoutHint()); hintView.setLayoutParams(lpH); }
+        if (editBtn != null) {
+            FrameLayout.LayoutParams lpE = (FrameLayout.LayoutParams) editBtn.getLayoutParams();
+            if (lpE != null) { lpE.bottomMargin = dp(layoutHint()); editBtn.setLayoutParams(lpE); }
+            editBtn.setVisibility(moveIndex < 0 && !editMode ? View.VISIBLE : View.GONE);
+        }
 
         final View target = (focusIndex >= 0 && focusIndex < bigTiles.size()) ? bigTiles.get(focusIndex)
                 : (bigTiles.isEmpty() ? (big.getChildCount() > 0 ? big.getChildAt(0) : small.getChildAt(0)) : bigTiles.get(bigTiles.size() - 1));
@@ -442,6 +467,7 @@ public class Home extends Activity {
         v.setClickable(true);
         v.setOnClickListener(new View.OnClickListener() { public void onClick(View x) {
             if (moveIndex >= 0) return;
+            if (editMode && isInDock(x)) { showTileMenu(bigTiles.indexOf(x)); return; }   // la case « + » et les petites tuiles : menu général
             if (isInDock(x)) {
                 // dock : on attend un peu, une rafale de OK (telecommandes Sony) vaut un appui long
                 if (pendingClick != null) h.removeCallbacks(pendingClick);
@@ -455,7 +481,7 @@ public class Home extends Activity {
                         .translationY(has ? -dp(6) : 0).translationZ(has ? dp(12) : 0)
                         .setDuration(180).setInterpolator(new DecelerateInterpolator()).start();
                 int r = x.getTag() instanceof Integer ? (Integer) x.getTag() : 14;
-                x.setForeground(has ? ring(r, moveIndex >= 0 ? ACCENT : 0xF2FFFFFF) : null);
+                x.setForeground(has ? ring(r, moveIndex >= 0 || editMode ? ACCENT : 0xF2FFFFFF) : null);
             }
         });
     }
@@ -543,6 +569,22 @@ public class Home extends Activity {
                 .show();
     }
 
+    void startEdit() {
+        editMode = true;
+        hintView.setText(t("OK sur une appli pour la modifier   ·   Retour pour terminer", "OK on an app to edit it   ·   Back to finish"));
+        hintView.setVisibility(View.VISIBLE);
+        buildDock(0);
+    }
+
+    void endEdit() {
+        editMode = false;
+        hintView.setVisibility(View.GONE);
+        int keep = 0;
+        View f = getCurrentFocus();
+        if (f != null && bigTiles.contains(f)) keep = bigTiles.indexOf(f);
+        buildDock(keep);
+    }
+
     void startMove(int index) {
         moveIndex = index;
         hintView.setText(t("◀  ▶  pour déplacer   ·   OK pour valider", "◀  ▶  to move   ·   OK to confirm"));
@@ -552,7 +594,8 @@ public class Home extends Activity {
 
     void endMove() {
         moveIndex = -1;
-        hintView.setVisibility(View.GONE);
+        if (editMode) hintView.setText(t("OK sur une appli pour la modifier   ·   Retour pour terminer", "OK on an app to edit it   ·   Back to finish"));
+        else hintView.setVisibility(View.GONE);
         saveConfig();
         int keep = 0;
         View f = getCurrentFocus();
@@ -785,6 +828,7 @@ public class Home extends Activity {
     void updateFocusBlocking() {
         int n = overlays.size();
         dock.setDescendantFocusability(n == 0 ? ViewGroup.FOCUS_AFTER_DESCENDANTS : ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        if (editBtn != null) editBtn.setFocusable(n == 0);
         for (int i = 0; i < n; i++) {
             View o = overlays.get(i);
             if (o instanceof ViewGroup)
@@ -823,7 +867,10 @@ public class Home extends Activity {
 
     @Override
     public boolean onKeyDown(int code, KeyEvent e) {
-        if (code == KeyEvent.KEYCODE_BACK) { closeTopOverlay(); return true; } // l'accueil ne se ferme jamais
+        if (code == KeyEvent.KEYCODE_BACK) {   // l'accueil ne se ferme jamais
+            if (!overlays.isEmpty()) closeTopOverlay(); else if (editMode) endEdit();
+            return true;
+        }
         // boutons d'applis de la telecommande TCL (si le service KeyService n'est pas actif)
         String keyApp = KeyService.appForKey(code);
         if (keyApp != null && overlays.isEmpty() && moveIndex < 0 && launchIntent(keyApp) != null) {
@@ -846,7 +893,7 @@ public class Home extends Activity {
     }
 
     @Override
-    public void onBackPressed() { closeTopOverlay(); }
+    public void onBackPressed() { if (!overlays.isEmpty()) closeTopOverlay(); else if (editMode) endEdit(); }
 
     @Override
     protected void onNewIntent(Intent i) {
@@ -854,6 +901,7 @@ public class Home extends Activity {
         // touche Accueil : ferme tout ce qui est ouvert
         if (moveIndex >= 0) endMove();
         while (!overlays.isEmpty()) closeOverlay(overlays.get(overlays.size() - 1), false);
+        if (editMode) endEdit();
         focusDock();
     }
 

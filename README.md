@@ -193,7 +193,12 @@ Avec la télécommande, dans Zen Home :
 
 ### Modifier l'écran d'accueil directement sur la TV
 
-Pas besoin du PC pour changer le dock. Sur une appli du dock, faites un **appui long sur OK** (ou appuyez sur la touche **Menu** de la télécommande) :
+Pas besoin du PC pour changer le dock. Deux façons d'ouvrir le menu d'une appli :
+
+- **Avec n'importe quelle télécommande :** depuis le dock, appuyez sur la flèche **Haut** pour atteindre **« ✎ Modifier l'accueil »**, puis **OK**. Un simple **OK** sur une appli ouvre alors son menu ; **Retour** termine.
+- **Raccourci :** sur une appli du dock, faites un **appui long sur OK** (ou appuyez sur la touche **Menu**, si votre télécommande en a une).
+
+Le menu propose :
 
 | Action | Ce qu'elle fait |
 |---|---|
@@ -227,7 +232,7 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | « Connexion impossible » | Vérifiez que la TV est allumée (pas en veille), sur le même réseau que le PC, et que le **Débogage USB** est activé. Vérifiez aussi l'adresse IP. |
 | Pas de fenêtre « Autoriser le débogage » | Désactivez puis réactivez le Débogage USB, puis relancez le kit. Sur certaines TV, il faut aussi activer **Débogage ADB réseau**. |
 | TV en Android 11 ou plus récent, avec un écran « Débogage sans fil » | Choisissez « Associer avec un code » sur la TV. Quand le kit le propose, répondez **oui** et tapez l'IP:port et le code affichés. |
-| L'appui long sur OK ne fait rien | Maintenez OK au moins une demi-seconde : Zen Home reconnaît aussi les télécommandes qui envoient l'appui long comme une rafale d'appuis courts (Sony, par exemple). Sinon, utilisez la touche **Menu** (ou ☰) sur l'appli. |
+| L'appui long sur OK ne fait rien | Utilisez le bouton **« ✎ Modifier l'accueil »** au-dessus du dock (flèche Haut depuis le dock) : il marche avec toutes les télécommandes. Zen Home reconnaît aussi les télécommandes qui envoient l'appui long comme une rafale d'appuis courts (Sony, par exemple). |
 | « Échec de l'installation » de Zen Home | La TV a sans doute affiché un avertissement Google Play Protect resté sans réponse. Relancez l'option 3 et, sur la TV, choisissez **« Détails »** puis **« Installer quand même »**. |
 | Zen Home ne s'affiche pas avec le bouton Accueil | Appuyez sur Accueil : si un choix s'affiche, prenez **Zen Home** puis **Toujours**. Sinon, relancez l'option 3 et acceptez de désactiver l'accueil d'origine. |
 | Les boutons Netflix, YouTube ou Prime Video de la télécommande ne marchent plus | Sur Google TV, c'est l'accueil d'origine qui gère ces boutons. Sur les **TCL**, l'option 3 les rebranche automatiquement grâce à un petit service d'accessibilité de Zen Home, qui n'intercepte que ces trois touches (l'option 6 le retire). Sur les autres marques, lancez l'option 6, puis refaites l'option 3 en répondant **non** quand le kit propose de désactiver l'accueil d'origine. |

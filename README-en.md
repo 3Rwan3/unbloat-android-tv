@@ -193,7 +193,12 @@ With the remote, in Zen Home:
 
 ### Edit the home screen right on the TV
 
-No PC needed to change the dock. On a dock app, **long-press OK** (or press the remote's **Menu** key):
+No PC needed to change the dock. Two ways to open an app's menu:
+
+- **With any remote:** from the dock, press the **Up** arrow to reach **"✎ Edit home screen"**, then **OK**. A plain **OK** on an app then opens its menu; **Back** finishes.
+- **Shortcut:** on a dock app, **long-press OK** (or press the **Menu** key, if your remote has one).
+
+The menu offers:
 
 | Action | What it does |
 |---|---|
@@ -227,7 +232,7 @@ As a last resort, a factory reset always brings the TV back to new. It also eras
 | "Could not connect" | Make sure the TV is on (not in standby), on the same network as the PC, and that **USB debugging** is enabled. Double-check the IP address. |
 | No "Allow debugging" prompt | Turn USB debugging off and on again, then restart the kit. Some TVs also need **Network ADB debugging**. |
 | Android 11 or newer TV with a "Wireless debugging" screen | Choose "Pair with code" on the TV. When the kit offers it, answer **yes** and type the IP:port and code shown. |
-| Long-pressing OK does nothing | Hold OK for at least half a second: Zen Home also recognises remotes that send a long press as a burst of short presses (Sony, for example). Otherwise, use the **Menu** (or ☰) key on the app. |
+| Long-pressing OK does nothing | Use the **"✎ Edit home screen"** button above the dock (Up arrow from the dock): it works with every remote. Zen Home also recognises remotes that send a long press as a burst of short presses (Sony, for example). |
 | Zen Home "Install failed" | The TV probably showed a Google Play Protect warning that went unanswered. Run option 3 again and, on the TV, choose **"Details"** then **"Install anyway"**. |
 | The Home button doesn't show Zen Home | Press Home: if a chooser appears, pick **Zen Home** then **Always**. Otherwise run option 3 again and accept disabling the original home screen. |
 | The remote's Netflix, YouTube or Prime Video buttons no longer work | On Google TV, the original home screen handles these buttons. On **TCL** sets, option 3 reconnects them automatically through a small Zen Home accessibility service that only intercepts those three keys (option 6 removes it). On other brands, run option 6, then run option 3 again and answer **no** when the kit offers to disable the original home screen. |
