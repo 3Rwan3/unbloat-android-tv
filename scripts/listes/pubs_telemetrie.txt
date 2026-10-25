@@ -75,7 +75,7 @@ com.mitv.tvhome.michannel                      | Rangées de contenus recommand�
 com.xiaomi.floatingframe                       | Fenêtre promo flottante | Floating promo overlay
 com.mitv.cloudcontrol                          | Configuration à distance par Xiaomi | Xiaomi remote cloud control
 com.xiaomi.mitv.tvpush.tvpushservice           | Notifications et pubs poussées | Pushed notifications and ads
-com.xiaomi.tvqs                                | Rapports qualité / plantages | Quality and crash reports
+com.xiaomi.tvqs,com.xiaomi.tvqs.overseas       | Rapports qualité / plantages | Quality and crash reports
 com.xiaomi.mitv.csi                            | Enquêtes de satisfaction | Satisfaction surveys
 com.miui.misightservice,com.xiaomi.mitv.debug  | Diagnostic et journaux à distance | Remote diagnostics and logs
 com.miui.systemAdSolution,com.xiaomi.mitv.advertise | Moteur publicitaire Xiaomi | Xiaomi ad engine

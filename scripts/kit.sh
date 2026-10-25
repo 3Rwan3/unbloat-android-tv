@@ -452,17 +452,46 @@ DOCK_NAMES=("Netflix" "YouTube" "Prime Video"
 # Android 10+ : l'accueil par défaut est un « rôle » système, en plus de set-home-activity
 Set_HomeRole() { [ "${INFO_Sdk:-0}" -ge 29 ] 2>/dev/null && Sh "cmd role add-role-holder android.app.role.HOME $1" >/dev/null; return 0; }
 
-# TCL : les boutons Netflix / YouTube / Prime Video de la télécommande ne marchent qu'avec l'accueil Google TV.
+# TCL, Xiaomi : les boutons Netflix / YouTube / Prime Video de la télécommande ne marchent qu'avec l'accueil Google TV.
 # Quand il est désactivé, le service d'accessibilité de Zen Home (KeyService) prend le relais pour ces seules touches.
+# Xiaomi (MiTV-MOOR2, Google TV) : Netflix (193) et Prime Video (194) restent gérés par le système, seul YouTube (190) est perdu.
 KEY_SVC="tv.zenhome/tv.zenhome.KeyService"
+KeyService_On() { case ":$(trim "$(Sh "settings get secure enabled_accessibility_services" | tr -d '\n')"):" in *":$KEY_SVC:"*) return 0 ;; esac; return 1; }
 Enable_KeyService() {
     local cur
-    case "$INFO_Brand $INFO_Manufacturer" in *TCL*|*tcl*|*Tcl*) ;; *) return 0 ;; esac
+    case "$INFO_Brand $INFO_Manufacturer" in
+        *TCL*|*tcl*|*Tcl*) Sh "settings delete global zenhome_keymap" >/dev/null ;;
+        *Xiaomi*|*xiaomi*|*XIAOMI*) Sh "settings put global zenhome_keymap 190:com.google.android.youtube.tv" >/dev/null ;;
+        *) return 0 ;;
+    esac
     cur="$(trim "$(Sh "settings get secure enabled_accessibility_services" | tr -d '\n')")"
     [ "$cur" = "null" ] && cur=""
-    case ":$cur:" in *":$KEY_SVC:"*) ;; *) Sh "settings put secure enabled_accessibility_services ${cur:+$cur:}$KEY_SVC" >/dev/null ;; esac
+    case ":$cur:" in *":$KEY_SVC:"*) ;; *) cur="${cur:+$cur:}$KEY_SVC" ;; esac
+    # couper puis remettre l'accessibilité : sinon Android ne relance pas toujours le service
+    Sh "settings put secure accessibility_enabled 0" >/dev/null
+    Sh "settings delete secure enabled_accessibility_services" >/dev/null
+    sleep 1
+    Sh "settings put secure enabled_accessibility_services $cur" >/dev/null
     Sh "settings put secure accessibility_enabled 1" >/dev/null
     Ok "Boutons Netflix, YouTube et Prime Video de la télécommande rebranchés sur leurs applis." "Remote's Netflix, YouTube and Prime Video buttons reconnected to their apps."
+}
+# am force-stop retire aussi KeyService des services d'accessibilité actifs : on le remet s'il l'était.
+# Android ne le relance qu'une fois Zen Home rouvert, d'où le retour à l'accueil avant.
+Restart_Zen() {
+    local had=0
+    KeyService_On && had=1
+    Sh "am force-stop $ZEN_PKG" >/dev/null
+    [ $had = 1 ] || return 0
+    Sh "input keyevent KEYCODE_HOME" >/dev/null
+    local i
+    for i in 1 2 3; do
+        sleep 3
+        Enable_KeyService >/dev/null
+        sleep 2
+        Sh "dumpsys accessibility" | grep -q "Bound services:{Service" && return 0
+    done
+    Warn "Boutons de la télécommande : relancez l'option 3 si YouTube ne s'ouvre plus." "Remote buttons: run option 3 again if YouTube no longer opens."
+    return 0
 }
 Disable_KeyService() {
     local cur rest
@@ -626,7 +655,7 @@ Do_Launcher() {
 
     Sh "cmd package set-home-activity $ZEN_PKG/.Home" >/dev/null
     Set_HomeRole "$ZEN_PKG"
-    Sh "am force-stop $ZEN_PKG" >/dev/null
+    Restart_Zen
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 6
     nowHome="$(Get_Home)"
@@ -674,7 +703,7 @@ Do_Photos() {
     if [ ${#files[@]} -eq 0 ]; then
         Warn "Aucune photo dedans. Copiez-y des .jpg (paysage, 1920×1080 idéalement) puis revenez ici." "No photos in it. Copy .jpg files there (landscape, ideally 1920×1080) then come back."
         if YesNo "Revenir aux photos fournies avec Zen Home ?" "Go back to the photos bundled with Zen Home?" 0; then
-            Sh "rm -rf /sdcard/ZenHome" >/dev/null; Sh "am force-stop $ZEN_PKG" >/dev/null; Sh "input keyevent KEYCODE_HOME" >/dev/null
+            Sh "rm -rf /sdcard/ZenHome" >/dev/null; Restart_Zen; Sh "input keyevent KEYCODE_HOME" >/dev/null
             Ok "Photos d'origine rétablies." "Bundled photos restored."
         fi
         open_path "$PHOTOS_DIR"
@@ -685,13 +714,13 @@ Do_Photos() {
     Sh "mkdir -p /sdcard/ZenHome" >/dev/null
     for f in "${files[@]}"; do A push "$f" "/sdcard/ZenHome/$(basename "$f")" >/dev/null; printf '   → %s\n' "$(basename "$f")"; done
     Sh "pm grant $ZEN_PKG android.permission.READ_EXTERNAL_STORAGE" >/dev/null
-    Sh "am force-stop $ZEN_PKG" >/dev/null
+    Restart_Zen
     Sh "input keyevent KEYCODE_HOME" >/dev/null
     sleep 5
     Capture_TV "photos_perso"
     Ok "Photos envoyées. Elles remplacent celles fournies." "Photos sent. They replace the bundled ones."
     iv="$(Ask "Secondes entre deux photos (Entrée = 60)" "Seconds between photos (Enter = 60)")"
-    case "$iv" in ""|*[!0-9]*) ;; *) Sh "settings put global zenhome_interval $iv" >/dev/null; Sh "am force-stop $ZEN_PKG" >/dev/null; Sh "input keyevent KEYCODE_HOME" >/dev/null ;; esac
+    case "$iv" in ""|*[!0-9]*) ;; *) Sh "settings put global zenhome_interval $iv" >/dev/null; Restart_Zen; Sh "input keyevent KEYCODE_HOME" >/dev/null ;; esac
 }
 
 # ---------------------------------------------------------------- 6. restauration
@@ -719,7 +748,7 @@ Do_Restore() {
     Disable_KeyService
     if in_list "$ZEN_PKG" "$(Get_Packages "")"; then
         if YesNo "Désinstaller Zen Home ?" "Uninstall Zen Home?" 1; then A uninstall "$ZEN_PKG" >/dev/null; Ok "Zen Home désinstallé" "Zen Home uninstalled"; fi
-        for k in zenhome_title_b64 zenhome_title_mode zenhome_layout zenhome_dock zenhome_rev zenhome_interval; do Sh "settings delete global $k" >/dev/null; done
+        for k in zenhome_title_b64 zenhome_title_mode zenhome_layout zenhome_dock zenhome_rev zenhome_interval zenhome_keymap zenhome_keylog; do Sh "settings delete global $k" >/dev/null; done
         Sh "rm -rf /sdcard/ZenHome" >/dev/null
     fi
     ST_DISABLED=""; ST_LAUNCHER_DISABLED=""

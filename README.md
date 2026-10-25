@@ -87,7 +87,7 @@ Ces chiffres viennent d'une seule TV. Le gain sera différent sur la vôtre.
 | Fire TV sous **Vega OS** (Fire TV Stick 4K Select et modèles sortis depuis fin 2025) | ❌ Pas Android | ❌ |
 | Samsung (Tizen), LG (webOS), Hisense VIDAA, Roku, Apple TV | ❌ Pas Android | ❌ |
 
-**Testé en conditions réelles :** une TCL BeyondTV (Android 9). Testés aussi par des utilisateurs : une TCL BeyondTV2 (Android 9) et un projecteur XGIMI MoGo 3 Pro (Google TV, Android 11). Les autres appareils de ce tableau devraient fonctionner, car ils utilisent les mêmes commandes Android, mais ils n'ont pas tous été testés.
+**Testé en conditions réelles :** une TCL BeyondTV (Android 9). Testés aussi par des utilisateurs : une TCL BeyondTV2 (Android 9), un projecteur XGIMI MoGo 3 Pro (Google TV, Android 11) et une Xiaomi MiTV-MOOR2 (Google TV, Android 11). Les autres appareils de ce tableau devraient fonctionner, car ils utilisent les mêmes commandes Android, mais ils n'ont pas tous été testés.
 
 **Philips et Ambilight :** d'après un retour d'utilisateur, l'Ambilight continue de fonctionner sans problème après l'allègement et l'installation de Zen Home. Le kit ne touche à aucun paquet Ambilight.
 
@@ -257,7 +257,7 @@ En dernier recours, une réinitialisation d'usine remet toujours la TV à neuf. 
 | L'appui long sur OK ne fait rien | Utilisez le bouton **« ✎ Modifier l'accueil »** au-dessus du dock (flèche Haut depuis le dock) : il marche avec toutes les télécommandes. Zen Home reconnaît aussi les télécommandes qui envoient l'appui long comme une rafale d'appuis courts (Sony, par exemple). |
 | « Échec de l'installation » de Zen Home | La TV a sans doute affiché un avertissement Google Play Protect resté sans réponse. Relancez l'option 3 et, sur la TV, choisissez **« Détails »** puis **« Installer quand même »**. |
 | Zen Home ne s'affiche pas avec le bouton Accueil | Appuyez sur Accueil : si un choix s'affiche, prenez **Zen Home** puis **Toujours**. Sinon, relancez l'option 3 et acceptez de désactiver l'accueil d'origine. |
-| Les boutons Netflix, YouTube ou Prime Video de la télécommande ne marchent plus | Sur Google TV, c'est l'accueil d'origine qui gère ces boutons. Sur les **TCL**, l'option 3 les rebranche automatiquement grâce à un petit service d'accessibilité de Zen Home, qui n'intercepte que ces trois touches (l'option 6 le retire). Sur les autres marques, lancez l'option 6, puis refaites l'option 3 en répondant **non** quand le kit propose de désactiver l'accueil d'origine. |
+| Les boutons Netflix, YouTube ou Prime Video de la télécommande ne marchent plus | Sur Google TV, c'est l'accueil d'origine qui gère ces boutons. Sur les **TCL** et les **Xiaomi**, l'option 3 les rebranche automatiquement grâce à un petit service d'accessibilité de Zen Home, qui n'intercepte que ces touches (l'option 6 le retire). Sur les Xiaomi, Netflix et Prime Video restent gérés par la TV : seul YouTube est rebranché. Sur les autres marques, lancez l'option 6, puis refaites l'option 3 en répondant **non** quand le kit propose de désactiver l'accueil d'origine. |
 | La touche Source de la télécommande ne marche plus | Sur certaines TV (surtout Google TV), c'est l'accueil d'origine qui gère cette touche. Lancez l'option 6 pour le réactiver, puis refaites l'option 3 en répondant **non** quand le kit propose de le désactiver. |
 | Le kit dit que le Wi-Fi appartient à l'écran de secours Google | Le réseau a été enregistré pendant la première configuration de la TV : désactiver cet écran le supprimerait et couperait la connexion. Sur la TV, **Paramètres → Réseau**, faites **« Oublier »** sur votre Wi-Fi **et sur les autres réseaux enregistrés** (se déconnecter puis se reconnecter ne suffit pas), reconnectez-vous en retapant le mot de passe, puis relancez l'option 3. Autre solution : branchez la TV en **Ethernet**, le kit pourra alors le désactiver sans risque (le Wi-Fi sera à reconfigurer). |
 | Logo Google TV en boucle après l'option 3 | Un écran de secours de Google a pris la place de l'accueil. Appuyez sur Accueil et choisissez **Zen Home** puis **Toujours**. Sinon, lancez l'option 6 depuis le PC, redémarrez la TV, puis refaites l'option 3 avec la dernière version du kit. |
@@ -287,7 +287,7 @@ Kit-TV-Android/
 │   └── listes/             ← ce qui est désactivé (modifiable)
 ├── ecran-accueil/
 │   ├── ZenHome.apk         ← l'écran d'accueil prêt à installer
-│   └── source/             ← code source Java + script de compilation
+│   └── source/             ← code source Java + scripts de compilation (build.sh Linux, build-mac.sh macOS)
 ├── mes_photos/             ← vos photos pour Zen Home (option 4)
 ├── outils/                 ← ADB, téléchargé automatiquement
 └── sauvegardes/            ← créé automatiquement : une sauvegarde par TV

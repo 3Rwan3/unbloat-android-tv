@@ -907,7 +907,7 @@ public class Home extends Activity {
             return true;
         }
         // boutons d'applis de la telecommande TCL (si le service KeyService n'est pas actif)
-        String keyApp = KeyService.appForKey(code);
+        String keyApp = KeyService.appForKey(this, code);
         if (keyApp != null && overlays.isEmpty() && moveIndex < 0 && launchIntent(keyApp) != null) {
             if (e.getRepeatCount() == 0) launch(keyApp);
             return true;
