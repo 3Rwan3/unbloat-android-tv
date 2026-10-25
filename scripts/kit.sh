@@ -744,7 +744,8 @@ Do_Restore() {
     echo
     Say "Restauration : réactive tout ce que le kit a désactivé sur cette TV, remet l'écran d'accueil et les animations d'origine." "Restore: re-enables everything the kit disabled on this TV, puts back the original home screen and animations." White
     YesNo "Continuer ?" "Continue?" 1 || return
-    for p in $ST_DISABLED; do
+    # ordre inverse de la désactivation : l'accueil d'origine revient avant l'écran de secours Google
+    for p in $(printf '%s\n' $ST_DISABLED | awk '{ l[NR] = $0 } END { for (i = NR; i > 0; i--) print l[i] }'); do
         r="$(Sh "pm enable $p" | tr '\n' ' ')"
         case "$r" in
             *enabled*) Ok "$p" "$p" ;;

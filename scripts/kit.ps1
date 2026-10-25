@@ -615,7 +615,9 @@ function Do-Restore {
     Write-Host ""
     Say "Restauration : réactive tout ce que le kit a désactivé sur cette TV, remet l'écran d'accueil et les animations d'origine." "Restore: re-enables everything the kit disabled on this TV, puts back the original home screen and animations." "White"
     if (-not (YesNo "Continuer ?" "Continue?" $true)) { return }
-    foreach ($p in $st.disabled) {
+    # ordre inverse de la désactivation : l'accueil d'origine revient avant l'écran de secours Google
+    $list = @($st.disabled); [array]::Reverse($list)
+    foreach ($p in $list) {
         $r = (Sh "pm enable $p") -join " "
         if ($r -match "enabled") { Ok $p $p }
         else { Write-Host ("  - " + $p + (T " : déjà actif ou introuvable, ignoré" " : already enabled or not found, skipped")) -ForegroundColor DarkGray }
